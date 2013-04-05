@@ -28,7 +28,7 @@ public class LazyModelDynamicEObjectImpl extends DynamicEObjectImpl{
 	    Iterator<EStructuralFeature> it = eClass.getEAllStructuralFeatures().iterator();
 	    
 	    while (it.hasNext()){
-	    	featuresFlagMap.put(it.next().getName(), false);    	
+	    	this.setFeaturesFlagMapElement(it.next().getName(), false);    	
 	    }
 	}
 	
