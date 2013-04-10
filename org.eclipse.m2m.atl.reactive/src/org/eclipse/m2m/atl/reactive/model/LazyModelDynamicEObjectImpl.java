@@ -4,9 +4,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.eclipse.emf.common.util.BasicEList;
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.impl.DynamicEObjectImpl;
+import org.eclipse.emf.ecore.impl.EReferenceImpl;
 
 
 public class LazyModelDynamicEObjectImpl extends DynamicEObjectImpl{
@@ -45,7 +49,7 @@ public class LazyModelDynamicEObjectImpl extends DynamicEObjectImpl{
 	@Override
 	public Object eGet(EStructuralFeature eFeature){
 		if (!valid){
-			throw new InvalidElementAccessException("Can Not perform Set operation: Element invalid");
+			throw new InvalidElementAccessException("Can Not perform Get operation: Element invalid");
 		}
 		
 		Object value = super.eGet(eFeature);
@@ -78,5 +82,24 @@ public class LazyModelDynamicEObjectImpl extends DynamicEObjectImpl{
 			throw new InvalidElementAccessException("Can Not perform Set operation: Element invalid");
 		}
 		super.eSet(eFeature, newValue);	
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public EList<EObject> eContents(){
+		EList<EObject> contentList = new BasicEList<EObject>();
+		
+		Iterator<EStructuralFeature> it = this.eClass.getEAllStructuralFeatures().iterator();
+	   
+	    while (it.hasNext()){ 
+	    	EStructuralFeature est = it.next();
+	    	if (est instanceof EReferenceImpl){
+	    		if ( ((EReferenceImpl)est).isContainment() ){
+	    			EList<EObject> partialList = (EList<EObject>) this.eGet(est);
+	    			contentList.addAll(partialList);
+	    		}
+	    	}
+	    }
+	    return contentList;		
 	}
 }
