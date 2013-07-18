@@ -97,7 +97,7 @@ public class ReactiveTransformationLauncher {
 		File asmFile = new File(asmPath);
 		InputStream is = new FileInputStream(asmFile);
 
-		transformation.init(is, false);
+		transformation.init(is, true);
 
 		initialSourceElement = getSourceResource().getContents().get(0);
 
@@ -118,9 +118,11 @@ public class ReactiveTransformationLauncher {
 							(EMFVMLazyTransformation) getTransformation(),
 							initialTargetElement));
 		} else {
-			getInitialTargetElement().eAdapters().add(
-					new StandardTargetAdapter(
-							(EMFVMLazyTransformation) getTransformation()));
+			StandardTargetAdapter sta = new StandardTargetAdapter(
+					(EMFVMLazyTransformation) getTransformation());
+			sta.setHandleCustomNotification(false);
+			getInitialTargetElement().eAdapters().add(sta);
+			sta.setHandleCustomNotification(true);
 		}
 		// Add source model adapter
 		getInitialSourceElement().eAdapters().add(
