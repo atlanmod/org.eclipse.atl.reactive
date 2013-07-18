@@ -20,6 +20,7 @@ public class StandardTargetAdapter extends EContentAdapter {
 
 	EMFVMLazyTransformation transformation;
 	private boolean handleCustomNotification = true;
+	
 
 	public StandardTargetAdapter(EMFVMLazyTransformation transformation) {
 		super();
