@@ -97,7 +97,7 @@ public class ReactiveTransformationLauncher {
 		File asmFile = new File(asmPath);
 		InputStream is = new FileInputStream(asmFile);
 
-		transformation.init(is, true);
+		transformation.init(is, false);
 
 		initialSourceElement = getSourceResource().getContents().get(0);
 
