@@ -55,6 +55,29 @@ public class TransformationLogger {
 
 		return string;
 	}
+	
+	
+	/**
+	 * this method create an empty event
+	 * I propose a second manner
+	 */
+	//public void stop() {
+	//	events.add(new TransformationEvent("", System.currentTimeMillis()
+	//			- startTime));
+	//}
+	//public void resume() {
+	//	startTime = System.currentTimeMillis()-events.get(events.size() - 1).getTime();
+	//}
+	
+	long stopTime;
+	public void stop() {
+		stopTime= System.currentTimeMillis();
+	}
+	public void resume() {
+		//startTime = System.currentTimeMillis()-events.get(events.size() - 1).getTime();
+		startTime=System.currentTimeMillis()-(stopTime-startTime);
+	}
+	
 
 	public void save(String path) throws IOException {
 		BufferedWriter o = new BufferedWriter(new FileWriter(path, true));
