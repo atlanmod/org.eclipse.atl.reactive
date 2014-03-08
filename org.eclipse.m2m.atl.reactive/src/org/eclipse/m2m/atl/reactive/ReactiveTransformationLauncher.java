@@ -155,20 +155,20 @@ public class ReactiveTransformationLauncher extends EMFVMLauncher {
 				new StandardSourceAdapter(
 						(EMFVMLazyTransformation) transformation));
 		
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				try {
-					PlatformUI.getWorkbench().getWorkbenchWindows()[0]
-							.getPages()[0]
-							.openEditor(new URIEditorInput(
-									((EMFModel) sourceModel).getResource()
-											.getURI()),
-									"org.eclipse.emf.ecore.presentation.ReflectiveEditorID");
-				} catch (PartInitException e) {
-					e.printStackTrace();
-				}
-			}
-		});
+//		Display.getDefault().syncExec(new Runnable() {
+//			public void run() {
+//				try {
+//					PlatformUI.getWorkbench().getWorkbenchWindows()[0]
+//							.getPages()[0]
+//							.openEditor(new URIEditorInput(
+//									((EMFModel) sourceModel).getResource()
+//											.getURI()),
+//									"org.eclipse.emf.ecore.presentation.ReflectiveEditorID");
+//				} catch (PartInitException e) {
+//					e.printStackTrace();
+//				}
+//			}
+//		});
 
 		return null;
 	}
