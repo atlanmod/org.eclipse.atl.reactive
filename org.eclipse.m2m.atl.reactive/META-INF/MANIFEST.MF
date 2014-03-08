@@ -17,7 +17,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.emf.workspace;bundle-version="1.4.0"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Import-Package: org.eclipse.emf.ecore,
+Import-Package: org.eclipse.emf.common.ui,
+ org.eclipse.emf.ecore,
  org.eclipse.ui.part
 Export-Package: org.eclipse.m2m.atl.reactive,
  org.eclipse.m2m.atl.reactive.model

@@ -5,6 +5,8 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.impl.EFactoryImpl;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.m2m.atl.core.emf.EMFModel;
 import org.eclipse.m2m.atl.core.emf.EMFModelFactory;
 import org.eclipse.m2m.atl.core.emf.EMFReferenceModel;
@@ -16,7 +18,11 @@ public class EMFLazyModel extends EMFModel{
 
 	public EMFLazyModel(EMFReferenceModel referenceModel, EMFModelFactory mf) {
 		super(referenceModel, mf);
-		// TODO Auto-generated constructor stub
+		if (getResource()==null) {
+			ResourceSet resourceSet = new ResourceSetImpl();
+			URI uri = URI.createURI("temp.xmi");
+			setResource(resourceSet.createResource(uri));
+		}
 	}
 	
 	/**
@@ -51,5 +57,5 @@ public class EMFLazyModel extends EMFModel{
 		mainResource.getContents().add(ret);
 		return ret;
 	}
-
+	
 }

@@ -46,6 +46,14 @@ import org.eclipse.m2m.atl.reactive.model.LazyModelDynamicEObjectImpl;
 public class EMFVMLazyTransformation implements ILazyTransformation{
 	
 	private Map<String, IModel> models = new HashMap<String, IModel>();
+	public Map<String, IModel> getModels() {
+		return models;
+	}
+
+	public void setModels(Map<String, IModel> models) {
+		this.models = models;
+	}
+
 	private ExecEnv execEnv;
 	private ASMModule asmModule;
 	private EMFLazyModelFactory lazyModelFactory = new EMFLazyModelFactory();
@@ -194,9 +202,7 @@ public class EMFVMLazyTransformation implements ILazyTransformation{
 		models.put(name, model);
 	}
 
-	public void init(InputStream bytecode, boolean step) {
-		ASM asm = new ASMXMLReader().read(new BufferedInputStream(bytecode));
-		
+	public void init(ASM asm, boolean step) {		
 		execEnv = new ExecEnv(models, new ITool[0]);
 		execEnv.setStep(step);
 		final EMFModelAdapter modelAdapter = new EMFModelAdapter();
@@ -360,7 +366,7 @@ public class EMFVMLazyTransformation implements ILazyTransformation{
 				
 				if (localVars[0] instanceof EObject){
 					EMFModel model = (EMFModel) execEnv.getModelOf(localVars[0]);
-					if (model != null){ //&& !model.isTarget()){
+					if (model != null && !model.isTarget()){ //&& !model.isTarget()){
 							return true;
 					}
 				}

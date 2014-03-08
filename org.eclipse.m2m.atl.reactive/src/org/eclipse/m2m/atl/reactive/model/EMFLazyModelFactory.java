@@ -10,6 +10,8 @@ import org.eclipse.m2m.atl.core.emf.EMFReferenceModel;
 
 public class EMFLazyModelFactory extends EMFModelFactory {
 	
+	/** The model factory name which is also the extractor/injector name. */
+	public static final String MODEL_FACTORY_NAME = "EMFLazy"; //$NON-NLS-1$
 	/**
 	 * {@inheritDoc}
 	 * 
