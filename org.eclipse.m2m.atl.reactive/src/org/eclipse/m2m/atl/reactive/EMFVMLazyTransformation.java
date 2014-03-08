@@ -1,7 +1,5 @@
 package org.eclipse.m2m.atl.reactive;
 
-import java.io.BufferedInputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -26,7 +24,6 @@ import org.eclipse.m2m.atl.core.emf.EMFModelFactory;
 import org.eclipse.m2m.atl.core.emf.EMFReferenceModel;
 import org.eclipse.m2m.atl.engine.emfvm.ASM;
 import org.eclipse.m2m.atl.engine.emfvm.ASMOperation;
-import org.eclipse.m2m.atl.engine.emfvm.ASMXMLReader;
 import org.eclipse.m2m.atl.engine.emfvm.StackFrame;
 import org.eclipse.m2m.atl.engine.emfvm.VMException;
 import org.eclipse.m2m.atl.engine.emfvm.adapter.EMFModelAdapter;

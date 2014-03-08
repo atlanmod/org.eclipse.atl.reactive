@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.emf.common.ui.URIEditorInput;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
@@ -36,9 +35,6 @@ import org.eclipse.m2m.atl.engine.emfvm.launch.EMFVMLauncher;
 import org.eclipse.m2m.atl.engine.emfvm.launch.ITool;
 import org.eclipse.m2m.atl.reactive.model.EMFLazyModel;
 import org.eclipse.m2m.atl.reactive.model.LazyModelDynamicEObjectImpl;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 
 //TODO Add arguments to choose between transformation modes
 
