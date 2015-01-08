@@ -1,0 +1,20 @@
+library Helpers;
+
+helper context ATL!Module def: sourceMetaElementsWithRules : Sequence(TupleType(metaElement : ATL!MetaElement, rules : Sequence(ATL!MatchedRule))) =
+	self.elements->select(e |
+		e.oclIsKindOf(ATL!MatchedRule)
+	)->iterate(e; acc : OclAny = Map {} |
+		let me : ATL!MetaElement = e.inPattern.elements->first().type in	-- only rules with one source element are supported
+		let t : TupleType(metaElement : ATL!MetaElement, rules : Sequence(ATL!MatchedRule)) = acc.get(me.name) in
+		if t.oclIsUndefined() then
+			acc->including(me.name, Tuple {metaElement = me, rules = Sequence {e}})
+		else
+			acc->including(me.name, Tuple {metaElement = me, rules = t.rules->including(e)})
+		endif
+	).getValues();
+
+
+
+
+
+

@@ -1,0 +1,1901 @@
+-- Lazy Version of the ATL compiler enhanced with incremantal capabilities
+--   It should allow calling individual rules and keep tracing and Binding level
+--   The execution semantics is as follow:
+--   Main will be executed first and will set the environment (trazabilityLinksSet, etc)
+--   and will launch the first transformation from an element passed by parameter
+--   From that moment rules will be fired on demand
+-- @authors		Fr�d�ric Jouault And Salvador Martínez
+-- @date		2011/03/07
+-- @description	This ACG code generator generates .asm files that run on the ATL VM from ATL models.
+acg ATL startsWith Unit {
+
+
+-- @begin Type Encoding
+	function OclType::encode() = '<DUMMY>';
+	function IntegerType::encode() = 'I';
+	function OclAnyType::encode() = 'J';
+	function RealType::encode() = 'D';
+	function BooleanType::encode() = 'B';
+	function StringType::encode() = 'S';
+	function Module::encode() = 'A';
+	function OclModelElement::encode() = 'M' + self.model.name + '!' + self.name + ';';
+	function SequenceType::encode() = 'Q' + self.elementType.encode();
+	function BagType::encode() = 'G' + self.elementType.encode();
+	function CollectionType::encode() = 'C' + self.elementType.encode();
+	function SetType::encode() = 'E' + self.elementType.encode();
+	function OrderedSetType::encode() = 'O' + self.elementType.encode();
+	function TupleType::encode() = 'T' + self.attributes->collect(e | e.type.encode() + e.name + ';').prepend('').sum() + ';';
+-- @end Type Encoding
+	
+
+	asm Module name self.name {
+		field 'links' : 'NTransientLinkSet;'
+		field 'col' : 'J'
+		field 'mElement' : 'M'
+		
+
+		operation
+				context 'A'
+				name 'main' {
+			--report warning 'Compiler in development process'
+			getasm
+			push 'OclParametrizedType'
+			push '#native'
+			new
+			dup
+			push 'Collection'
+			call 'J.setName(S):V'
+			dup
+			push 'OclSimpleType'
+			push '#native'
+			new
+			dup
+			push 'OclAny'
+			call 'J.setName(S):V'
+			call 'J.setElementType(J):V'
+			set 'col'
+
+			analyze self.elements->select(e | e isa Helper) mode register
+
+			getasm
+			push 'TransientLinkSet'
+			push '#native'
+			new
+			set 'links'
+			
+		
+			push 'OclAny'
+			push '#native'
+			findme
+			push '__dependants'		-- Map(propertyName : String, dependantProperties : Sequence(TupleType(element, propertyName)))
+			push '<cannot persist>'
+			call 'J.registerWeavingHelper(SS):V'
+			
+--			push 'EClass'
+--			push 'EMF'
+--			findme
+--			push '__dependants'		-- Map(propertyName : String, dependantProperties : Sequence(TupleType(element, propertyName)))
+--			push '<cannot persist>'
+--			call 'J.registerWeavingHelper(SS):V'
+			
+		}
+		
+				-- This operation register dependenat element for OCLExpressions
+		operation
+				context 'J'
+				name '__registerDependant' {
+			param 'sourcePropertyName' : 'S'
+			param 'targetElement' : 'J'
+			param 'binding' : 'S'
+			param 'sourceElement' : 'J'	-- i.e., the source element which transformation depends on self (also a source element)
+
+			load 'self'
+			--getasm
+			get '__dependants'	-- allSourceDependants
+			call 'J.oclIsUndefined():B'
+			call 'B.not():B'	-- allSourceDependants.isDefined
+			if skipInitMap
+				--getasm
+				load 'self'
+				push 'Map'
+				push '#native'
+				new
+				set '__dependants'
+		  skipInitMap:
+
+			load 'self'
+			get '__dependants'
+		  	load 'sourcePropertyName'
+			call 'J.get(J):J'
+
+			call 'J.oclIsUndefined():B'
+			call 'B.not():B'	-- sourceDependants, sourceDependants.isDefined
+			if skipInitSeq
+				--getasm
+				load 'self'
+				get '__dependants'
+				load 'sourcePropertyName'
+				push 'Sequence'
+				push '#native'
+				new
+				call 'J.__put(JJ):J'
+				pop
+		  skipInitSeq:
+
+			load 'self'
+			--getasm
+			get '__dependants'
+		  	load 'sourcePropertyName'
+			call 'J.get(J):J'
+
+					-- sourceDependants
+			push 'Tuple'
+			push '#native'
+			new
+
+			dup
+			load 'targetElement'
+			set 'targetElement'
+
+			dup
+			load 'binding'
+			set 'binding'
+
+			dup
+			load 'sourceElement'
+			set 'sourceElement'
+					-- sourceDependants, tuple
+
+			call 'QJ.__add(J):QJ'
+			pop
+		}
+		
+		-- This operation will allow to execute bindings one by one. In case the binding is
+		-- a reference an elementCreated operation will be launched
+		operation 
+			context 'A'
+			name '__initBinding__'{
+			
+			param 'targetElement' : 'J'
+			param 'feature' : 'S'
+			
+			--TODO: Not very elegant. Revise to eliminate the two loads of transient link
+			getasm
+			get 'links'																	-- TransientLinkSet
+			load 'targetElement'														-- TransientLinkSet, targetElement															
+			call 'NTransientLinkSet;.getLinkByTargetElement(S):QNTransientLink;'		-- TransientLink
+			call 'NTransientLink;.getFirstSourceElement():J'							-- SourceElement
+			dup
+			
+			load 'targetElement'														-- SourceElement, targetElement													
+			load 'feature'	
+			
+			getasm
+			get 'links'																	-- TransientLinkSet
+			load 'targetElement'														-- TransientLinkSet, targetElement															
+			call 'NTransientLinkSet;.getLinkByTargetElement(S):QNTransientLink;'		-- TransientLink															
+			
+			call 'M.elementApplyed(JJSNTransientLink;):V'
+		}
+		
+		operation
+				context 'A'
+				name '__resolve__' {
+			param 'value' : 'J'
+
+			load 'value'
+			getasm
+			get 'col'
+			call 'J.oclIsKindOf(J):B'
+			if thn
+					-- not a collection
+				getasm
+				get 'links'
+				load 'value'
+				call 'NTransientLinkSet;.getLinkBySourceElement(S):QNTransientLink;'
+				dup
+				call 'J.oclIsUndefined():B'
+				if thn2
+					load 'value'
+					call 'NTransientLink;.getTargetFromSource(J):J'
+					goto eoi2
+			    thn2:
+			    	--it is undefined so if value is a model element we should launch a transformation
+			    	--to get the targets corresponding with value. After that we will have to call the
+			    	--traceLink again to get this new created target.
+			    	--We need to know the type of value. We can not call elementCreated on a normal type
+			    	
+			    	load 'value'
+			    	call 'J.isModelElement():B'
+			    	if thn3
+			    		pop
+						load 'value'
+			    		goto eoi3
+			    	thn3:
+			    		load 'value'
+			    		call 'M.elementCreated():V'
+			    		getasm
+						get 'links'
+						load 'value'
+						call 'NTransientLinkSet;.getLinkBySourceElement(S):QNTransientLink;'
+						-- If the link does not exist... is because there is not rule able to translate it (because of filter)
+						-- but... it is normal to be here then??
+						dup
+						call 'J.oclIsUndefined():B'
+						call 'B.not():B'
+						if thn4
+							pop
+							goto eoi
+						thn4:
+							load 'value'
+							call 'NTransientLink;.getTargetFromSource(J):J'
+			    	eoi3:
+			    eoi2:
+				goto eoi
+		    thn:
+				push 'Sequence'
+				push '#native'
+				new
+				load 'value'
+				iterate
+					variable self named 'e' {
+						getasm
+						load self
+						call 'A.__resolve__(J):J'
+						call 'QJ.including(J):QJ'
+					}
+				enditerate
+				call 'QJ.flatten():QJ'
+		    eoi:
+		}
+		operation
+				context 'A'
+				name 'resolveTemp' {
+			param 'value' : 'J'
+			param 'name' : 'S'
+
+			getasm
+			get 'links'
+			load 'value'
+			call 'NTransientLinkSet;.getLinkBySourceElement(S):QNTransientLink;'
+			load 'value'
+			load 'name'
+			call 'NTransientLink;.getNamedTargetFromSource(JS):J'
+		}
+		
+		analyze self.elements
+			
+		-- Creates funtions to asociate rules with input elements and to call this rules
+		-- in the match and create modes
+		foreach(smewr in self.sourceMetaElementsWithRules) {
+			operation
+					context smewr.metaElement.encode()
+					name 'elementCreated' {
+				-- TODO: support multiple rules
+				pushf
+				foreach(rule in smewr.rules) {
+					-- TODO: Test if the rule is not lazy
+					getasm									-- Context Module
+					load 'self'								-- SourceElement
+					pushf
+					call 'A.__match' + rule.name + '(JB):V'
+				}
+				pop
+			}
+			
+			-- This operation is called when a source element is deleted. The tracelinks for
+			-- that element are read and all the target elements are consequently marked as
+			-- invalid
+			operation
+					context smewr.metaElement.encode()
+					name 'elementDeleted' {
+						getasm
+						get 'links'
+						load 'self'
+						call 'NTransientLinkSet;.getLinkBySourceElement(S):QNTransientLink;'
+						dup
+						call 'J.oclIsUndefined():B'
+						if thn
+							--load 'self'
+							-- Here we need all the targets and iterate
+							call 'NTransientLink;.getTargetElements():QJ'
+							iterate
+								--call 'NTransientLink;.getTargetFromSource(J):J'
+								call 'J.invalidateTarget():J'
+							enditerate
+							getasm
+							get 'links'
+							dup
+							load 'self'
+							call 'NTransientLinkSet;.getLinkBySourceElement(S):QNTransientLink;'
+							call 'NTransientLinkSet;.removeLink(NTransientLink;):V'
+						thn:
+			}
+			
+			
+			-- This operation will be called any time a source element property changes. If the change
+			-- affects a binding, the affected structural feature will be marked as invalid. If the change 
+			-- affects a filter an element will be invalidated or marked as deleted.
+			operation
+					context smewr.metaElement.encode()
+					name 'propertyChanged' {
+				param 'propertyName' : 'J'
+
+				load 'self'
+				get '__dependants'
+				load 'propertyName'
+				call 'J.get(J):J'
+
+--				push 'Dependants of '
+--				load 'propertyName'
+--				call 'S.+(S):S'
+--				call 'J.debug(S):J'
+
+				dup
+				call 'J.oclIsUndefined():J'
+				if skip
+					call 'QJ.asOrderedSet():J'
+					-- Here we iterate calling the function to set bindings as invalid
+					-- If we found a filter then we will need to re-evaluate it to see if we have to
+					-- mark the element as deleted (And maybe also the trace links)
+					iterate
+						dup					-- dep, dep
+						get 'targetElement'	-- dep, targetElement
+						swap				-- telem, dep
+						dup					-- telem, dep, dep
+						get 'sourceElement'	-- telem, dep, sourceElement
+						swap				-- telem, selem, dep
+						get 'binding'		-- telem, selem, opname=binding
+						dup					-- telem, selem, opname=binding, binding
+						push '__match'		-- telem, selem, opname=binding. binding, '__match'
+						call 'S.startsWith(S):B'
+						call 'B.not():B'
+						if nofilter
+							--It is a filter. Here we have to call the rule
+							push 'Sequence'
+							push '#native'
+							new					-- telem, opname, selem, args
+							load 'self'				-- telem, opname, selem, args, true
+							call 'QJ.including(J):QJ'
+							pusht
+							call 'QJ.including(J):QJ'
+							--getasm
+							call 'J.refInvokeOperation(SQJ):J'
+							--If the filter is true we have to invalidate the containment feature of the
+							--father. If it is false, the element has to be marked as invalid. We call
+							--then two different operations
+							if create
+								--invalidate the element only if it was translated
+								getasm
+								get 'links'
+								load 'self'
+								call 'NTransientLinkSet;.getLinkBySourceElement(S):QNTransientLink;'
+								dup
+								call 'J.oclIsUndefined():B'
+								if thn
+									load 'self'
+									call 'NTransientLink;.getTargetFromSource(J):J'
+									call 'J.invalidateTarget():J'
+								thn:
+									goto fin
+							create:
+							--mark the parent feature as invalid unless the target element already exist
+							goto fin
+						nofilter:
+							swap				-- telem, opname, selem
+							call 'J.processChanged(JS):J'
+		
+		-- Here we need the operation to invalidate the corresponding model elements				
+		-- With target element and Binding is enough.
+		
+		--				push 'Sequence'
+		--				push '#native'
+		--				new					-- telem, opname, selem, args
+		--				swap
+		--				call 'QJ.including(J):QJ'	-- telem, opname, args
+		--				call 'J.refInvokeOperation(SQJ):J'
+						fin:
+					enditerate
+			  skip:
+
+	--			foreach(binding in self.ope.bindings) {
+	--				load 'self'
+	--				get 'targetElement'
+	--				load 'self'
+	--				call 'J.' + binding.operationName + '(J):V'
+	--			}			
+			}
+			
+			operation
+					context smewr.metaElement.encode()
+					name 'elementApplyed' {
+					param 'sourceElement' : 'J' 
+					param 'targetElement' : 'J' 
+					param 'feature' : 'S'
+					param 'link' : 'NTransientLink;'
+				foreach(rule in smewr.rules) {
+						getasm												-- Context Module
+						load 'sourceElement'								-- SourceElement
+						load 'targetElement'
+						load 'feature'
+						load 'link'
+						call 'A.__apply' + rule.name + '(JJSNTransientLink;):V'
+				}
+			}
+		}
+	}
+		
+		
+		
+--		-- Creates funtions to asociate rules with input elements and to call this rules
+--		-- in the apply mode. So the target has already been created!!	
+--		foreach(smewr in self.sourceMetaElementsWithRules) { -- Move this to the previous foreach
+--			operation
+--					context smewr.metaElement.encode()
+--					name 'elementApplyed2' {
+--					param 'sourceElement' : 'J' 
+--					param 'targetElement' : 'J' 
+--					param 'feature' : 'S'
+--					param 'link' : 'NTransientLink;'
+--				-- TODO: support multiple rules
+--				foreach(rule in smewr.rules) {
+--				
+--					variable rule named rule.name{
+--					[
+--					
+--					push rule.name
+--					
+--					load 'link'
+--					call 'NTransientLink;.getRule():S'
+--					call 'S.=(S):B'
+--					call 'B.not():B'
+--					if end
+--							
+--						foreach(ipe in rule.inPatternElements()) {
+--							load 'link'
+--							push ipe.varName
+--							call 'NTransientLink;.getSourceElement(S):J'
+--						
+--							variable ipe named ipe.varName {
+--							[
+--								--We create here and store in a variable the sequence to hold dependencies
+--								--push 'Sequence'
+--								--push '#native'
+--								--new
+--								--variable self named '__deps' { -- Sequence(TupleType(source, propertyName : String))
+--
+--									foreach(ope in rule.ruleOutPatternElements()) {
+--										load 'link'
+--										push ope.varName
+--										call 'NTransientLink;.getTargetElement(S):J'
+--										variable ope named ope.varName {
+--										[
+--											foreach(v in rule.variables) {
+--												load 'link'
+--												push v.varName
+--												call 'NTransientLink;.getVariable(S):J'
+--												variable v named v.varName {
+--												[
+--													
+--														analyze rule.ruleOutPatternElements() mode select
+--													
+--													
+--													
+--													if(not rule.actionBlock.oclIsUndefined()) {
+--										
+--														report error 'do block not supported in lazy mode'
+--										
+--													}
+--												]
+--												}
+--											}
+--										]
+--										}
+--
+--									}
+--							]
+--							}
+--						}end:
+--						]
+--						}	
+--				}
+--				
+--			}
+--			
+--		}
+--		
+--	}
+
+	asm Query name self.name {
+		operation
+				context 'A'
+				name 'main' {
+			analyze self.helpers mode register
+			analyze self.body
+		}
+		analyze self.helpers
+	}
+
+	asm Library name self.name {
+		-- we have a main operation to register the attribute helpers
+		operation
+				context 'A'
+				name 'main' {
+			analyze self.helpers mode register
+		}
+		analyze self.helpers
+	}
+
+-- @begin Helpers
+	Helper {
+		analyze self.definition.feature	
+	}
+
+	Helper mode register {
+		analyze self.definition.feature	mode register
+	}
+
+	Operation mode register {
+		-- nothing to do: only attributes need registration
+	}
+
+	Operation {
+		operation
+				context
+					if self.definition.context_.oclIsUndefined() then
+						'A'
+					else
+						self.definition.context_.context_.encode()
+					endif
+				name self.name {
+			foreach(p in self.parameters) {
+				param p.varName : 'J'
+			}
+			analyze self.body
+		}
+	}
+
+	-- module attribute
+	Attribute mode register | self.definition.context_.oclIsUndefined() {
+		getasm
+		analyze self.initExpression
+		set self.name
+	}
+
+	Attribute | self.definition.context_.oclIsUndefined() {
+		field self.name : 'J'
+	}
+
+	Attribute mode register {
+		analyze self.definition.context_.context_
+		push self.name
+		push '__init' + self.name
+		call 'J.registerHelperAttribute(SS):V'
+	}
+
+	Attribute {
+		operation
+				context self.definition.context_.context_.encode()
+				name '__init' + self.name {
+			analyze self.initExpression
+		}
+	}
+-- @end Helpers
+
+-- @begin Declarative Part
+-- @begin Standard Rules
+	function Rule::ruleOutPatternElements() =
+		if self.outPattern.oclIsUndefined() then
+			Sequence {}
+		else
+			self.outPattern.elements
+		endif;
+
+	MatchedRule {
+		analyze self mode matcher
+		analyze self mode applyer
+	}
+
+	MatchedRule mode matcher | not self.superRule.oclIsUndefined() {
+		-- do nothing because subRules are matched by their superRules
+	}
+
+--
+--	We will need here to pass the element to what the rule has to be
+--	applyed. Then the pattern is testd and if the test is passed we will
+--	go to the creation phase of the rule
+
+	MatchedRule mode applyer {
+		operation
+			context 'A'
+					name '__apply' + self.name {
+					param 'sourceElement' : 'J' 
+					param 'targetElement' : 'J' 
+					param 'feature' : 'S'
+					param 'link' : 'NTransientLink;'
+					
+					load 'link'
+					call 'NTransientLink;.getRule():S'
+					push self.name
+					call 'S.=(S):B'
+					call 'B.not():B'	
+					if end
+									
+					foreach(ipe in self.inPatternElements()) {
+						load 'link'
+						push ipe.varName
+						call 'NTransientLink;.getSourceElement(S):J'
+						
+						variable ipe named ipe.varName {
+						[
+								
+							foreach(ope in self.ruleOutPatternElements()) {
+								load 'link'
+								push ope.varName
+								call 'NTransientLink;.getTargetElement(S):J'
+								variable ope named ope.varName {
+								[
+									foreach(v in self.variables) {
+										load 'link'
+										push v.varName
+										call 'NTransientLink;.getVariable(S):J'
+										variable v named v.varName {
+										[
+											analyze self.ruleOutPatternElements() mode select
+											if(not self.actionBlock.oclIsUndefined()) {
+												report error 'do block not supported in lazy mode'
+											}
+										]
+										}
+									}
+								]
+								}
+							}
+						]
+						}
+					}
+					end:
+				}
+	}
+	
+	MatchedRule mode matcher | self.superRule.oclIsUndefined() {
+		operation
+				context 'A'
+				name '__match' + self.name {
+				param 'elementToTransform' : 'J'
+				param 'filterTesting' : 'B'
+
+				load 'elementToTransform'
+				foreach(ipe in self.inPattern.elements) {
+					variable ipe named ipe.varName {
+					[
+						if(not self.inPattern.filter.oclIsUndefined()) {
+						
+							-- We define here the variable to hold the sequence on dependency tuples
+							-- Sequence(TupleType(source, propertyName : String)) 
+							push 'Sequence'
+							push '#native'
+							new
+							variable self.inPattern named '__deps' {				
+						
+								analyze self.inPattern.filter
+							
+							--	load self.inPattern
+--								push 'Filter of rule ' + self.name
+--								call 'J.debug(S):J'
+		
+								-- we analize the filter as it can make the execution of this rule dependent 
+								-- of changes in this or in other elements
+								-- register as dependant of dependency elements
+								load self.inPattern
+								
+								iterate
+									dup					-- dep, dep
+									get 'source'		-- dep, sourceElement
+									swap				-- sourceElement, dep
+									get 'propertyName'	-- selem, sourcePropertyName
+									load 'self'			-- selem, spropname, targetElement
+									-- we save the name of the rule because we will call it again to
+									-- test the filter
+									push '__match' + self.name
+									load 'self'	 		-- sourceElement
+									call 'J.__registerDependant(SJSJ):V'
+								enditerate
+								
+								load 'filterTesting'
+								if thn
+									goto els
+								thn:
+									dup
+								els:
+									call 'B.not():B'
+									if end
+							}
+						
+							--analyze self.inPattern.filter
+							--call 'B.not():B'
+							--if end
+						}
+						--if we are only testing the filter the rule does not have to
+						--be executed
+						load 'filterTesting'
+						if end
+						analyze self mode checkSubRules
+					    end:
+					]
+					}
+				}
+		}
+	}
+	
+	MatchedRule mode checkSubRules {
+		analyze self mode create
+	}
+	
+
+	function MatchedRule::allSubRules() =
+		if self.isAbstract then
+			self.children
+		else
+			self.children.append(self)
+		endif;
+
+	-- makes sure the default rule is last
+	function MatchedRule::subRules() =
+		self.allSubRules()->select(e | not e.inPattern.filter.oclIsUndefined()).union(
+			self.allSubRules()->select(e | e.inPattern.filter.oclIsUndefined())
+		);
+
+	function MatchedRule::rootRule() =
+		if self.superRule.oclIsUndefined() then
+			self
+		else
+			self.superRule.rootRule()
+		endif;
+
+	function MatchedRule::mostAbstractOutPatternElements() =
+		if self.superRule.oclIsUndefined() then
+			self.ruleOutPatternElements()
+		else
+			let super = self.superRule.mostAbstractOutPatternElements() in
+			let superNames = super->collect(e | e.varName) in
+			super.union(
+				self.ruleOutPatternElements()->select(e |
+					not superNames.includes(e.varName)
+				)
+			)
+		endif;
+
+	function MatchedRule::mostConcreteOutPatternElements() =
+		if self.superRule.oclIsUndefined() then
+			self.ruleOutPatternElements()
+		else
+			let this = self.ruleOutPatternElements() in
+			let thisNames = this->collect(e | e.varName) in
+			this.union(
+				self.superRule.mostConcreteOutPatternElements()->select(e |
+					not thisNames.includes(e.varName)
+				)
+			)
+		endif;
+
+	function MatchedRule::mostConcreteVariables() =
+		if self.superRule.oclIsUndefined() then
+			self.variables
+		else
+			let this = self.variables in
+			let thisNames = this->collect(e | e.varName) in
+			this.union(
+				self.superRule.mostConcreteVariables()->select(e |
+					not thisNames.includes(e.varName)
+				)
+			)
+		endif;
+
+	function MatchedRule::inPatternElements() =
+		self.rootRule().inPattern.elements;
+
+	function SimpleInPatternElement::actualDeclaration() =
+		self.inPattern.rule.inPatternElements()->select(e | e.varName = self.varName).first();
+
+	function OutPatternElement::actualDeclaration() =
+		if self.outPattern.rule isa MatchedRule then
+			self.outPattern.rule.mostAbstractOutPatternElements()->select(e | e.varName = self.varName).first()
+		else
+			self
+		endif;
+		
+
+--	This rule will create the target element but without initializing the bindings.
+--	The target element will be created when calling  analyze opes mode match
+--	The standard traceability link between source and target will be also created
+	MatchedRule mode create {
+		getasm
+		get 'links'
+
+		push 'TransientLink'
+		push '#native'
+		new
+
+		dup
+		push self.name
+		call 'NTransientLink;.setRule(MATL!Rule;):V'
+--		dup
+--		load 'self'
+--		call 'NTransientLink;.setRuleObject():V'
+
+		foreach(ipe in self.inPattern.elements) {
+			dup
+			push ipe.varName
+			--The call to actual declaration is not working.
+			load ipe.actualDeclaration()
+			--load self.elementToTransform
+			--load 'elementToTransform'
+			call 'NTransientLink;.addSourceElement(SJ):V'
+		}
+
+		foreach(v in self.mostConcreteVariables()) {
+			dup
+			push v.varName
+			analyze v.initExpression
+			dup
+			variable v named v.varName {
+				call 'NTransientLink;.addVariable(SJ):V'
+			[
+				let opes = self.mostConcreteOutPatternElements() {
+						analyze opes mode match
+				}
+			]
+			}
+		}
+
+		if(self.isNoDefault) {
+			pushf
+		} else {
+			pusht
+		}
+		call 'NTransientLinkSet;.addLink2(NTransientLink;B):V'
+	}
+ 
+-- @begin SimpleOutPatternElement
+	code SimpleOutPatternElement mode match {
+		dup
+		push self.varName
+			
+		push self.type.name
+		push self.type.model.name
+		if (not self.model.oclIsUndefined()) {
+			push self.model.name
+			newin
+		} else {
+			new
+		}
+		
+					-- transientLink, varName, element
+--		foreach(rb in self.reverseBindings) {
+--			dup		-- transientLink, varName, element, element
+--			if(rb isa NavigationOrAttributeCallExp) {
+--				analyze rb.source	-- transientLink, varName, element, element, value
+--				swap			-- transientLink, varName, element, value, element
+--				set rb.name		-- transientLink, varName, element
+--			} else {
+--				report error 'only navigations are allowed in reversebindings' 
+--			}
+--		}
+		call 'NTransientLink;.addTargetElement(SJ):V'
+	}
+	
+	-- TODO: removal, change...
+	code SimpleOutPatternElement mode matchFirstRefining {
+		dup
+		push self.varName
+
+		push 'Element'
+		push 'RefiningTrace'
+		new
+		dup
+		push self.type.name
+		set 'type'
+		dup
+		push self.type.model.name
+		set 'metamodel'
+		dup
+		load self.outPattern.rule.inPatternElements().first()
+		set 'sourceElement'
+
+		call 'NTransientLink;.addTargetElement(SJ):V'
+	}
+	
+
+	
+
+	function MatchedRule::getBindings(varName, ret) =
+		if self.outPattern.oclIsUndefined() then
+			Sequence {}
+		else
+			let ope =
+				self.outPattern.elements->select(e |
+					e.varName = varName
+				).first() in
+			let retNames = ret->collect(e | e.propertyName) in
+			let newRet =
+				if ope.oclIsUndefined() then
+					ret
+				else
+					ret.union(
+						ope.bindings->select(e |
+							not retNames.includes(e.propertyName)
+						)
+					)
+				endif in
+			if self.superRule.oclIsUndefined() then
+				newRet
+			else
+				self.superRule.getBindings(varName, newRet)
+			endif
+		endif;
+		
+	function OutPatternElement::allBindings() =
+		let superRule = self.outPattern.rule.superRule in
+		if superRule.oclIsUndefined() then
+			self.bindings
+		else
+			self.outPattern.rule.getBindings(self.varName, Sequence {})
+		endif;
+
+	code SimpleOutPatternElement mode apply {
+		load self.actualDeclaration()
+		analyze self.allBindings() 
+		pop
+	}
+	
+	code SimpleOutPatternElement mode select {
+		load self.actualDeclaration()
+		analyze self.allBindings() mode select
+		pop
+	}
+	
+	code Binding {
+		dup
+--		push 'Analyzing Binding (normal): ' + self.propertyName
+--		call 'J.debug(S):J'
+		if(self.isAssignment) {
+			push self.propertyName
+			call 'J.refUnsetValue(S):J'
+		}
+		getasm
+		analyze self.value
+		call 'A.__resolve__(J):J'
+		set self.propertyName
+	}
+	
+	code Binding mode select{
+		dup
+		push self.propertyName
+		load 'feature'
+		call 'S.=(S):B'
+--		push 'Analyzing Binding (Select): ' + self.propertyName
+--		call 'J.debug(S):J'
+		if thn
+			goto eoi
+		thn:
+			push self.outPatternElement.type.name
+			load 'targetElement'														-- SourceElement, targetElement
+			call 'J.oclType():J'	
+			get 'name'
+			call 'S.=(S):B'
+			if thn2
+				goto eoi2
+			thn2: -- It is the binding we want to set
+				if(self.isAssignment) {
+					push self.propertyName
+					call 'J.refUnsetValue(S):J'
+				}
+				getasm
+				--load 'self'
+				
+				
+				-- Here is where we are supposed to collect the information of the binding
+				-- than can be composed by several OclExpressions so we will still need the
+				-- deps sequence. Anter that we will call __registerDependant.
+				
+--				push 'Analyzing Binding: ' + self.propertyName
+--				call 'J.debug(S):J'
+				
+				push 'Sequence'
+				push '#native'
+				new
+				variable self named '__deps' { -- Sequence(TupleType(source, propertyName : String))
+				
+					analyze self.value  
+					
+					load self
+					
+					iterate
+						dup						-- dep, dep
+						get 'source'			-- dep, sourceElement
+						swap					-- sourceElement, dep
+						get 'propertyName'		-- selem, sourcePropertyName
+						load 'targetElement'	-- selem, spropname, targetElement
+						push self.propertyName 	-- selem, spropname, targetElement, opName
+						load 'sourceElement'
+						call 'J.__registerDependant(SJSJ):V'
+					enditerate
+					
+					                                 													
+					call 'A.__resolve__(J):J'
+					-- Here we need to see if the resolution returns OclUndefined and if the element
+					-- in the stack after self.value is a model element. If that is the case we will
+					-- have to launch a transformation to generate the target element (or targets)	
+					-- We can do it modifiying resolve directly?
+					load 'targetElement'
+					swap
+					set self.propertyName
+					
+				}	
+			eoi2:
+		eoi:
+	}
+	
+-- @end SimpleOutPatternElement
+
+
+-- @end Standard Rules
+
+-- @begin Lazy Rules
+
+--LazyMatchedRule | self.superRule.oclIsUndefined() {
+--		if(self.module.isRefining) {
+--			report error 'lazy rules not supported in lazy mode yet'
+--		} else {
+--			operation
+--					context 'A'
+--					name self.name {
+--					param 'elementToTransform' : 'J'
+--				
+--				load 'elementToTransform'
+--			    call 'M.elementCreated():V'
+--			    load self.mostConcreteOutPatternElements().first().actualDeclaration()
+--			}
+--		}		
+--
+--	}
+
+	LazyMatchedRule | self.isRefining {
+		report error 'refining lazy matched rules not supported in ATL 2006 yet'
+	}
+
+	LazyMatchedRule | self.superRule.oclIsUndefined() {
+		if(self.module.isRefining) {
+			report error 'lazy rules not supported in lazy mode yet'
+		} else {
+			operation
+				context 'A'
+				name self.name {
+				param 'elementToTransform' : 'J'
+					
+				load 'elementToTransform'
+				--foreach(ipe in self.inPattern.elements) {
+				--	param ipe.varName : ipe.type.encode()
+				--}
+	
+				if(self.isUnique) {
+					report error 'unique lazy rules not supported in lazy mode yet'
+				}
+	
+				getasm
+				get 'links'
+	
+				push 'TransientLink'
+				push '#native'
+				new
+	
+				dup
+				push self.name
+				call 'NTransientLink;.setRule(MATL!Rule;):V'
+			
+				load 'elementToTransform'	
+				foreach(ipe in self.inPattern.elements) {
+					variable ipe named ipe.varName {
+					[
+						dup
+						push ipe.varName
+						--load ipe.varName
+						load ipe
+						call 'NTransientLink;.addSourceElement(SJ):V'
+					
+						analyze self mode checkSubRules
+					]
+					}
+				}
+											
+			
+	
+--				foreach(ipe in self.inPattern.elements) {
+--						dup
+--						push ipe.varName
+--						load ipe.varName
+--						call 'NTransientLink;.addSourceElement(SJ):V'
+--					
+--						analyze self mode checkSubRules
+--				}
+	
+				--analyze self mode checkSubRules
+			    --eoo:
+			}
+			operation
+			context 'A'
+					name '__apply' + self.name {
+					param 'sourceElement' : 'J' 
+					param 'targetElement' : 'J' 
+					param 'feature' : 'S'
+					param 'link' : 'NTransientLink;'
+					
+					load 'link'
+					call 'NTransientLink;.getRule():S'
+					push self.name
+					call 'S.=(S):B'
+					call 'B.not():B'	
+					if end
+									
+					foreach(ipe in self.inPatternElements()) {
+						load 'link'
+						push ipe.varName
+						call 'NTransientLink;.getSourceElement(S):J'
+						
+						variable ipe named ipe.varName {
+						[
+								
+							foreach(ope in self.ruleOutPatternElements()) {
+								load 'link'
+								push ope.varName
+								call 'NTransientLink;.getTargetElement(S):J'
+								variable ope named ope.varName {
+								[
+									foreach(v in self.variables) {
+										load 'link'
+										push v.varName
+										call 'NTransientLink;.getVariable(S):J'
+										variable v named v.varName {
+										[
+											analyze self.ruleOutPatternElements() mode select
+											if(not self.actionBlock.oclIsUndefined()) {
+												report error 'do block not supported in lazy mode'
+											}
+										]
+										}
+									}
+								]
+								}
+							}
+						]
+						}
+					}
+					end:
+				}
+			
+		}
+	
+
+	}
+
+	LazyMatchedRule mode checkSubRules {
+		foreach(v in self.mostConcreteVariables()) {
+			--analyze v.initExpression
+			dup
+			push v.varName
+			analyze v.initExpression
+			dup
+			variable v named v.varName {
+				call 'NTransientLink;.addVariable(SJ):V'
+			[
+				analyze self mode create
+			]
+			}
+		}
+		
+		
+	}
+
+	LazyMatchedRule mode create {	-- TODO: REFINING
+		foreach(ope in self.mostConcreteOutPatternElements()) {
+			if(ope isa ForEachOutPatternElement) {
+				-- TODO: compiler crashes
+				report error 'distinct-foreach target pattern elements are deprecated and not compatible with lazy rules'
+			} else {
+			
+				dup
+				push ope.varName
+	
+				push ope.type.name
+				push ope.type.model.name
+				if (not ope.model.oclIsUndefined()) {
+					push ope.model.name
+					newin
+				} else {
+					new
+				}
+				dup
+				variable ope.actualDeclaration() named ope.varName {
+					call 'NTransientLink;.addTargetElement(SJ):V'
+				[
+					pushf
+					call 'NTransientLinkSet;.addLink2(NTransientLink;B):V'
+					--analyze self.mostConcreteOutPatternElements() mode apply
+					load self.mostConcreteOutPatternElements().first().actualDeclaration()
+				]
+				}
+			}
+		}
+	}
+	
+	
+-- @end Lazy Rules
+
+
+-- @end Declarative Part
+
+-- @begin OCL
+-- @begin LiteralExps
+-- @begin PrimitiveExps
+	code BooleanExp | self.booleanSymbol {
+		pusht
+	}
+
+	code BooleanExp {
+		pushf
+	}
+
+	code IntegerExp {
+		pushi self.integerSymbol
+	}
+
+	code RealExp {
+		pushd self.realSymbol
+	}
+
+	code StringExp {
+		push self.stringSymbol
+	}
+-- @end PrimitiveExps
+
+	code EnumLiteralExp {
+		push 'EnumLiteral'
+		push '#native'
+		new
+		dup
+		push self.name
+		set 'name'
+	}
+
+	code OclUndefinedExp {
+		push 'Sequence'
+		push '#native'
+		new
+		call 'QJ.first():J'
+	}
+
+-- @begin CollectionExps
+	code BagExp {
+		push 'Bag'
+		push '#native'
+		new
+		analyze self.elements {
+			call 'CJ.including(J):CJ'
+		}
+	}
+
+	code SequenceExp {
+		push 'Sequence'
+		push '#native'
+		new
+		analyze self.elements {
+			call 'CJ.including(J):CJ'
+		}
+	}
+
+	code SetExp {
+		push 'Set'
+		push '#native'
+		new
+		analyze self.elements {
+			call 'CJ.including(J):CJ'
+		}
+	}
+
+	code OrderedSetExp {
+		push 'OrderedSet'
+		push '#native'
+		new
+		analyze self.elements {
+			call 'CJ.including(J):CJ'
+		}
+	}
+-- @end CollectionExps
+
+	code TupleExp {
+		push 'Tuple'
+		push '#native'
+		new
+		analyze self.tuplePart
+	}
+
+	code TuplePart {
+		dup
+		analyze self.initExpression
+		set self.varName
+	}
+
+	code MapExp {
+		push 'Map'
+		push '#native'
+		new
+		analyze self.elements
+	}
+
+	code MapElement {
+		analyze self.key
+		analyze self.value
+		call 'J.including(JJ):J'
+	}
+-- @end LiteralExps
+
+-- @begin Types
+-- @begin SimpleTypes
+	code OclAnyType {
+		push 'OclAny'
+		push '#native'
+		findme
+	}
+
+	code IntegerType {
+		push 'Integer'
+		push '#native'
+		findme
+	}
+
+	code BooleanType {
+		push 'Boolean'
+		push '#native'
+		findme
+	}
+
+	code RealType {
+		push 'Real'
+		push '#native'
+		findme
+	}
+
+	code StringType {
+		push 'String'
+		push '#native'
+		findme
+	}
+-- @end Simple Types
+
+	code OclModelElement {
+		push self.name
+		push self.model.name
+		findme
+	}
+
+	code TupleType {
+		push 'TupleType'
+		push '#native'
+		new
+		analyze self.attributes
+	}
+
+	code TupleTypeAttribute {
+		dup
+		push self.name
+		push 'OclAny'
+		push '#native'
+		findme
+		call 'J.addAttribute(SJ):V'
+	}
+
+-- @begin Parameterized Types
+	code CollectionType {
+		push 'OclParametrizedType'
+		push '#native'
+		new
+		dup
+		push 'Collection'
+		call 'J.setName(S):V'
+		dup
+		analyze self.elementType
+		call 'J.setElementType(J):V'
+	}
+
+	code SequenceType {
+		push 'OclParametrizedType'
+		push '#native'
+		new
+		dup
+		push 'Sequence'
+		call 'J.setName(S):V'
+		dup
+		analyze self.elementType
+		call 'J.setElementType(J):V'
+	}
+
+	code SetType {
+		push 'OclParametrizedType'
+		push '#native'
+		new
+		dup
+		push 'Set'
+		call 'J.setName(S):V'
+		dup
+		analyze self.elementType
+		call 'J.setElementType(J):V'
+	}
+
+	code OrderedSetType {
+		push 'OclParametrizedType'
+		push '#native'
+		new
+		dup
+		push 'OrderedSet'
+		call 'J.setName(S):V'
+		dup
+		analyze self.elementType
+		call 'J.setElementType(J):V'
+	}
+
+	code BagType {
+		push 'OclParametrizedType'
+		push '#native'
+		new
+		dup
+		push 'Bag'
+		call 'J.setName(S):V'
+		dup
+		analyze self.elementType
+		call 'J.setElementType(J):V'
+	}
+-- @end Parameterized Types
+-- @end Types
+
+	code LetExp {
+		analyze self.variable.initExpression
+		variable self.variable named self.variable.varName {
+			analyze self.in_
+		}
+	}
+
+	code IfExp {
+		analyze self.condition
+		if thn
+			analyze self.elseExpression
+			goto eoi
+	    thn:
+			analyze self.thenExpression
+	    eoi:
+	}
+
+-- @begin VariableExp
+	code VariableExp | self.referredVariable.varName = 'thisModule' {
+		getasm
+	}
+
+	code VariableExp | self.referredVariable.varName = 'self' {
+		load 'self'
+	}
+
+	-- is redefined for rule inheritance
+	function VariableDeclaration::actualDeclaration2() = self;
+
+	code VariableExp |
+			(self.referredVariable isa Parameter) --or (
+				--if self.referredVariable isa InPatternElement 
+				--
+				--then
+				--	self.referredVariable.inPattern.rule isa LazyMatchedRule
+				--else
+				--	false
+				--endif
+			--) 
+			{
+		load self.referredVariable.varName
+	}
+
+	code VariableExp {
+		load self.referredVariable.actualDeclaration2()
+	}
+-- @end VariableExp
+
+-- @begin PropertyCallExps
+	code OperationCallExp |
+			if self.operationName = '-' then	-- use a if to optimize
+				self.arguments.size() = 0 and self.source isa NumericExp
+			else
+				false
+			endif {
+		pushi 0
+		analyze self.source
+		call 'J.-(J):J'
+	}
+
+	code OperationCallExp | self.source isa SuperExp {
+		load 'self'
+		analyze self.arguments
+		supercall self.operationSignature
+	}
+
+	attribute OperationCallExp::operationSignature =
+		'J.' + self.operationName + '(' + self.arguments->collect(e | 'J').prepend('').sum() + '):J';
+
+	code OperationCallExp {
+		analyze self.source
+		analyze self.arguments
+		call self.operationSignature
+	}
+	
+	attribute OclExpression::dependencyListener =
+		let c = self.refImmediateComposite() in
+		if c isa Binding then
+			c
+		else if c isa InPattern then
+			c
+		else if c isa OclExpression then
+			c.dependencyListener
+		else
+			OclUndefined
+		endif endif endif;
+
+	code NavigationOrAttributeCallExp {
+		analyze self.source
+		
+		if(not self.dependencyListener.oclIsUndefined()) {
+							-- sourceVal
+		-- @begin store dependencies
+			dup				-- sourceVal, sourceVal
+			push 'Tuple'
+			push '#native'
+			new				-- sourceVal, sourceVal, Tuple
+
+			dup_x1			-- sourceVal, Tuple, sourceVal, Tuple
+			swap
+			set 'source'	-- sourceVal, Tuple
+
+			dup
+			push self.name
+			set 'propertyName'	-- sourceVal, Tuple
+
+			load self.dependencyListener
+			swap			-- sourceVal, deps, Tuple
+			call 'QJ.append(J):QJ'	-- sourceVal, newDeps
+			store self.dependencyListener
+		-- @end store dependencies
+							-- sourceVal
+		}
+		get self.name
+	}
+
+	code IterateExp | self.iterators.size() = 1 {
+		analyze self.result.initExpression
+		variable self.result named self.result.varName {
+			analyze self.source
+			iterate
+				variable self.iterators.first() named self.iterators.first().varName {
+					analyze self.body
+					store self.result
+				}
+			enditerate
+			load self.result
+		}
+	}
+
+	-- WITH SEVERAL ITERATORS
+	code IterateExp {
+		analyze self.result.initExpression
+		variable self.result named self.result.varName {
+			analyze self.source
+			dup
+			foreach(i in self.iterators) { 
+				if(i <> self.iterators.first()) {
+					dup_x1
+				}
+				iterate
+					variable i named i.varName {
+					[
+						analyze self.body
+						store self.result
+					]
+					}
+				enditerate
+				if(i = self.iterators.last()) {
+					pop
+				} else {
+					swap
+				}
+			}
+			load self.result
+		}
+	}
+
+-- @begin IteratorExps
+	code IteratorExp | self.name = 'exists' and self.iterators.size() = 1 {
+		pushf
+		analyze self.source
+		iterate
+			variable self.iterators.first() named self.iterators.first().varName {
+				analyze self.body
+				call 'B.or(B):B'
+			}
+		enditerate
+	}
+
+	-- WITH TWO ITERATORS
+--	code IteratorExp | self.name = 'exists' and self.iterators.size() = 2 {
+--		pushf							-- ret
+--		analyze self.source					-- ret, Seq
+--		dup							-- ret, Seq, Seq
+--		iterate
+--			variable self.iterators.first() named self.iterators.first().varName {
+--									-- ret, Seq
+--				dup_x1					-- Seq, ret, Seq
+--				iterate
+--					variable self.iterators.last() named self.iterators.last().varName {
+--									-- Seq, ret
+--						analyze self.body	-- Seq, ret, body
+--						call 'B.or(B):B'	-- Seq, ret
+--					}
+--				enditerate
+--				swap
+--			}
+--		enditerate
+--		pop
+--	}
+
+	-- WITH SEVERAL ITERATORS
+	code IteratorExp | self.name = 'exists' {
+		pushf
+		analyze self.source
+		dup
+		foreach(i in self.iterators) { 
+			if(i <> self.iterators.first()) {
+				dup_x1
+			}
+			iterate
+				variable i named i.varName {
+				[
+					analyze self.body
+					call 'B.or(B):B'
+				]
+				}
+			enditerate
+			if(i = self.iterators.last()) {
+				pop
+			} else {
+				swap
+			}
+		}
+	-- ACTUAL SEMANTICS (recursive):
+--		pushf
+--		analyze self.source
+--		f(iterators, statements) { 
+--			if(iterators.size() > 1) {
+--				dup
+--			}
+--			iterate
+--				variable iterators.first() named iterators.first().varName {
+--					if(iterators.size() > 1) {
+--						f(iterators.subSequence(2, iterators.size() - 1), statements)
+--					} else {
+--						statements
+--					}
+--				}
+--			enditerate
+--		} (self.iterators, {
+--					analyze self.body
+--					call 'B.or(B):B'
+--				}
+--		)
+	}
+
+	code IteratorExp | self.name = 'forAll' and self.iterators.size() = 1 {
+		pusht
+		analyze self.source
+		iterate
+			variable self.iterators.first() named self.iterators.first().varName {
+				analyze self.body
+				call 'B.and(B):B'
+			}
+		enditerate
+	}
+	
+	-- WITH SEVERAL ITERATORS
+	code IteratorExp | self.name = 'forAll' {
+		pusht
+		analyze self.source
+		dup
+		foreach(i in self.iterators) { 
+			if(i <> self.iterators.first()) {
+				dup_x1
+			}
+			iterate
+				variable i named i.varName {
+				[
+					analyze self.body
+					call 'B.and(B):B'
+				]
+				}
+			enditerate
+			if(i = self.iterators.last()) {
+				pop
+			} else {
+				swap
+			}
+		}
+	}
+
+	-- One iterator max (from OCL spec)
+	code IteratorExp | self.name = 'isUnique' and self.iterators.size() = 1 {
+		analyze self.source
+		dup
+		call 'CJ.size():I'
+		swap
+
+		push 'Set'
+		push '#native'
+		new
+		swap
+		iterate
+			variable self.iterators.first() named self.iterators.first().varName {
+				analyze self.body
+				call 'CJ.including(J):CJ'
+			}
+		enditerate
+
+		call 'CJ.size():I'
+		call 'I.=(I):I'
+	}
+
+	-- One iterator max (from OCL spec)
+	code IteratorExp | self.name = 'any' and self.iterators.size() = 1 {
+		push 'Sequence'
+		push '#native'
+		new
+		analyze self.source
+		iterate
+			variable self.iterators.first() named self.iterators.first().varName {
+				analyze self.body
+				call 'B.not():B'
+				if thn
+					load self.iterators.first()
+					call 'CJ.including(J):CJ'
+			    thn:
+			}
+		enditerate
+		call 'CJ.asSequence():QJ'
+		call 'QJ.first():J'
+	}
+
+	-- One iterator max (from OCL spec)
+	code IteratorExp | self.name = 'one' and self.iterators.size() = 1 {
+		push 'Sequence'
+		push '#native'
+		new
+		analyze self.source
+		iterate
+			variable self.iterators.first() named self.iterators.first().varName {
+				analyze self.body
+				call 'B.not():B'
+				if thn
+					load self.iterators.first()
+					call 'CJ.including(J):CJ'
+			    thn:
+			}
+		enditerate
+		call 'CJ.size():I'
+		pushi 1
+		call 'I.=(I):I'
+	}
+
+	-- One iterator max (from OCL spec)
+	code IteratorExp | self.name = 'select' and self.iterators.size() = 1 {
+		push 'Sequence'
+		push '#native'
+		new
+		analyze self.source
+		iterate
+			variable self.iterators.first() named self.iterators.first().varName {
+				analyze self.body
+				call 'B.not():B'
+				if thn
+					load self.iterators.first()
+					call 'CJ.including(J):CJ'
+			    thn:
+			}
+		enditerate
+	}
+
+	-- One iterator max (from OCL spec)
+	code IteratorExp | self.name = 'reject' and self.iterators.size() = 1 {
+		push 'Sequence'
+		push '#native'
+		new
+		analyze self.source
+		iterate
+			variable self.iterators.first() named self.iterators.first().varName {
+				analyze self.body
+				if thn
+					load self.iterators.first()
+					call 'CJ.including(J):CJ'
+			    thn:
+			}
+		enditerate
+	}
+
+	-- One iterator max (from OCL spec)
+	code IteratorExp | self.name = 'collect' and self.iterators.size() = 1 {
+		push 'Sequence'
+		push '#native'
+		new
+		analyze self.source
+		iterate
+			variable self.iterators.first() named self.iterators.first().varName {
+				analyze self.body
+				call 'CJ.including(J):CJ'
+			}
+		enditerate
+	}
+
+	-- One iterator max (from OCL spec)
+	code IteratorExp | self.name = 'sortedBy' and self.iterators.size() = 1 {
+		push 'Sequence'
+		push '#native'
+		new
+		analyze self.source
+		iterate
+			variable self.iterators.first() named self.iterators.first().varName {
+
+				dup
+				call 'CJ.isEmpty():B'
+				if thn
+					dup
+					pushi 1
+					swap
+					iterate
+						load self.iterators.first()
+						swap
+						store self.iterators.first()
+						analyze self.body
+						swap
+						store self.iterators.first()
+						analyze self.body
+
+						call 'I.>(I):B'
+						if thn2
+							pushi 1
+							call 'I.+(I):I'
+					    thn2:
+					enditerate
+
+					load self.iterators.first()
+					call 'QJ.insertAt(IJ):QJ'
+
+					goto eoi
+			    thn:
+					load self.iterators.first()
+					call 'QJ.append(J):QJ'
+			    eoi:
+			}
+		enditerate
+	}
+
+	code IteratorExp | self.iterators.size() = 1 {
+		report error 'iterator \'' + self.name + '\' not supported'
+	}
+
+	code IteratorExp {
+		report error 'iterator \'' + self.name + '\' not supported with several iterators'
+	}
+-- @end IteratorExps
+-- @end PropertyCallExps
+-- @end OCL
+
+}
