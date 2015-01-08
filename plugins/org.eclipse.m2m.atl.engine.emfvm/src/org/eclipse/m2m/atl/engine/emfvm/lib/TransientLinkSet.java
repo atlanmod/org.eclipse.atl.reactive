@@ -101,6 +101,37 @@ public class TransientLinkSet {
 			}
 		}
 	}
+	
+	/**
+	 * 
+	 * @param tl
+	 */
+	public void removeLink(TransientLink tl) {
+		links.remove(tl);
+		linksByRule.remove(tl.getRule());
+		linksBySourceElementByRule.remove(tl.getRule());
+		
+
+		Object se = null;
+		if (tl.getSourceElements().size() == 1) {
+			se = tl.getSourceElements().values().iterator().next();
+		} else {
+			se = new Tuple(tl.getSourceElements());
+		}
+		
+		linksBySourceElement.remove(se);
+
+		for (Iterator<Object> i = tl.getTargetElements().values().iterator(); i.hasNext();) {
+			Object o = i.next();
+			if (o instanceof Collection<?>) {
+				for (Iterator<?> j = ((Collection<?>)o).iterator(); j.hasNext();) {
+					linksByTargetElement.remove(j.next());
+				}
+			} else {
+				linksByTargetElement.remove(o);
+			}
+		}
+	}
 
 	/**
 	 * Returns the links of a rule.

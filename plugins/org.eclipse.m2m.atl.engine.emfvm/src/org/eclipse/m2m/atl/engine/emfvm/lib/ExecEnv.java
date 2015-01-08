@@ -2467,7 +2467,7 @@ public class ExecEnv {
 	}
 
 	private Map<String, String> getWeavingHelperToPersistTo(Object type, boolean createIfMissing) {
-		Map<String, String> ret = weavingHelperToPersistToByType.get(type);
+		Map<String, String> ret = weavingHelperToPersistToByType.get(Object.class);
 		if (createIfMissing && (ret == null)) {
 			ret = new HashMap<String, String>();
 			weavingHelperToPersistToByType.put(type, ret);
@@ -2571,9 +2571,7 @@ public class ExecEnv {
 						for (Iterator<?> k = model.getElementsByType(type).iterator(); k.hasNext();) {
 							Object ame = k.next();
 							Object value = getHelperValue(null, modelAdapter.getType(ame), ame, name);
-							if (!modelAdapter.isDeleted(value))
-								modelAdapter.set(new StackFrame(this), ame, persistTo,
-										modelAdapter.getID(value));
+							modelAdapter.set(new StackFrame(this), ame, persistTo, modelAdapter.getID(value));
 						}
 					}
 				}
