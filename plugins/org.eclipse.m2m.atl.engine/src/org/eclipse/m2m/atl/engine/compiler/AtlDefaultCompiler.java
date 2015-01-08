@@ -207,7 +207,9 @@ public abstract class AtlDefaultCompiler implements AtlStandaloneCompiler {
 				params.put("typeextensions", typeextensions); //$NON-NLS-1$
 			}
 			try {
-
+				//Map<String, String> aux = new HashMap<String, String>();
+				//aux.put("1", "step");
+				params.put("step", new Boolean(true).toString());
 				launcher.launch(ILauncher.RUN_MODE, null, params, new Object[] {launcher
 						.loadModule(getSemanticAnalyzerURL().openStream()),});
 
@@ -244,7 +246,13 @@ public abstract class AtlDefaultCompiler implements AtlStandaloneCompiler {
 						"resources/typeencoding.asm").openStream())); //$NON-NLS-1$
 				launcher.addLibrary("strings", launcher.loadModule(AtlDefaultCompiler.class.getResource(//$NON-NLS-1$
 						"resources/strings.asm").openStream())); //$NON-NLS-1$
+				
+				//We need to add the library Helpers.asm
+				launcher.addLibrary("Helpers", launcher.loadModule(AtlDefaultCompiler.class.getResource(//$NON-NLS-1$
+				"resources/Helpers.asm").openStream())); //$NON-NLS-1$
 
+				params.put("step", new Boolean(true).toString());
+				
 				launcher.launch(ILauncher.RUN_MODE, null, params, new Object[] {launcher
 						.loadModule(getCodegeneratorURL().openStream()),});
 
