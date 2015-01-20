@@ -1,0 +1,45 @@
+-- @path Relational=/TestLazyDemostrator/Relational/Relational.ecore
+-- @path xml=/TestLazyDemostrator/XML/xml.ecore
+
+module Relational2XML;
+create OUT : xml from IN : Relational;
+
+rule System2Root{
+	from
+		s: Relational!System
+	to
+		t: xml!Root (
+			name <- s.name,
+		 	children <- s.schemas 	
+		)
+}
+
+rule Schema2Element{
+	from
+		s: Relational!Schema
+	to
+		t: xml!Element (
+			name <- s.name,
+			children <- s.ownedElements	
+		)
+}
+
+rule Table2Element{
+	from
+		s: Relational!Table
+	to
+		t: xml!Element (
+			name <- s.name,
+			children <- s.col	
+		)
+}
+
+rule Column2Attribute{
+	from
+		s: Relational!Column
+	to
+		t:	xml!Attribute (
+			name <- s.name	
+	)	
+}
+

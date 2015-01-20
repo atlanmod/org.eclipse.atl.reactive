@@ -1,0 +1,89 @@
+-- @path ClassDiagram=/ClassDiagram2Relational/ClassDiagram/ClassDiagram.ecore
+-- @path Relational=/ClassDiagram2Relational/Relational/Relational.ecore
+module Class2Relational;
+create OUT : Relational from IN : ClassDiagram;
+
+
+helper context String def: firstToLower() : String =
+	self.substring(1, 1).toLower() + self.substring(2, self.size());
+
+-- Translation of inheritance not supported yet
+
+-- issue: choose an object-id Type (Integer, String?).
+-- We choose Integer here, assuming this type is defined in the source model.
+
+-- global variable
+-- context 
+helper def: objectIdType : Relational!Type =
+	ClassDiagram!DataType.allInstances()->select(e | e.name = 'Integer')->first();
+
+rule System2System{
+	from
+		p: ClassDiagram!System
+	to
+		out: Relational!System (
+			schemas <- p.packages,
+			name <- p.name
+		)
+}
+
+rule Package2Schema{
+	from
+		p: ClassDiagram!Package
+	to
+		out: Relational!Schema (
+			ownedElements <- p.ownedElement->select(e | e.oclIsTypeOf(ClassDiagram!Class)),
+			name <- p.name
+		)
+}
+
+rule Class2Table {
+	from
+		c : ClassDiagram!Class
+	to
+		out : Relational!Table (
+			name <- c.name,
+			-- Columns are generated from Attributes in another rule not explicitly called here
+			col <- c.attr->select(e | not e.multiValued)--,
+			--key <- Set {key}
+		)
+		--,
+--		key : Relational!Column (
+--			name <- 'objectId',
+--			type <- thisModule.objectIdType
+--		)
+}
+
+rule DataType2Type {
+	from
+		dt : ClassDiagram!DataType
+	to
+		out : Relational!Type (
+			name <- dt.name
+		)
+}
+
+rule DataTypeAttribute2Column {
+	from
+		a : ClassDiagram!Attribute (
+			a.type.oclIsKindOf(ClassDiagram!DataType) and not a.multiValued
+		)
+	to
+		out : Relational!Column (
+			name <- 'assssasdasasdssjjssqwesdfwsdd',
+			type <- a.type
+		)
+}
+
+rule ClassAttribute2Column {
+	from
+		a : ClassDiagram!Attribute (
+			a.type.oclIsKindOf(ClassDiagram!Class) and
+			not a.multiValued
+		)
+	to
+		foreignKey : Relational!Column (
+			name <- a.name --+ 'Id'--,
+			--type <- thisModule.objectIdType
+		)
+}

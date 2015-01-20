@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="ASCII"?>
+<ClassDiagram:System
+    xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ClassDiagram="ClassDiagram"
+    name="name2">
+  <packages
+      name="p1">
+    <ownedElement
+        xsi:type="ClassDiagram:Class"
+        name="c1">
+      <attr
+          name="att1TypeMulti"
+          multiValued="true"
+          type="//@packages.0/@ownedElement.2"/>
+    </ownedElement>
+    <ownedElement
+        xsi:type="ClassDiagram:Class"
+        name="c2"/>
+    <ownedElement
+        xsi:type="ClassDiagram:DataType"
+        name="dtype1"/>
+  </packages>
+</ClassDiagram:System>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="ASCII"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:Relational="Relational">
+  <Relational:System>
+    <schemas href="data/Relational/Sample-Relational.xmi#/1"/>
+    <schemas href="data/Relational/Sample-Relational.xmi#/2"/>
+  </Relational:System>
+  <Relational:Schema name="p1">
+    <ownedElements href="data/Relational/Sample-Relational.xmi#/3"/>
+    <ownedElements href="data/Relational/Sample-Relational.xmi#/4"/>
+    <ownedElements href="data/Relational/Sample-Relational.xmi#/5"/>
+  </Relational:Schema>
+  <Relational:Schema name="p2"/>
+  <Relational:Table name="c1">
+    <owner href="data/Relational/Sample-Relational.xmi#/1"/>
+  </Relational:Table>
+  <Relational:Table name="c2">
+    <owner href="data/Relational/Sample-Relational.xmi#/1"/>
+  </Relational:Table>
+  <Relational:Table name="c1_att1TypeMulti">
+    <owner href="data/Relational/Sample-Relational.xmi#/1"/>
+  </Relational:Table>
+  <Relational:Column/>
+  <Relational:Column/>
+</xmi:XMI>

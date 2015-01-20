@@ -1,0 +1,482 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<atl:Module xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:atl="http://www.eclipse.org/gmt/2005/ATL" xmlns:ocl="http://www.eclipse.org/gmt/2005/OCL" location="3:1-89:2" name="Class2Relational">
+  <commentsBefore>-- @path ClassDiagram=/ClassDiagram2Relational/ClassDiagram/ClassDiagram.ecore</commentsBefore>
+  <commentsBefore>-- @path Relational=/ClassDiagram2Relational/Relational/Relational.ecore</commentsBefore>
+  <commentsAfter>--rule ClassAttribute2Column {</commentsAfter>
+  <commentsAfter>--	from</commentsAfter>
+  <commentsAfter>--		a : ClassDiagram!Attribute (</commentsAfter>
+  <commentsAfter>--			a.type.oclIsKindOf(ClassDiagram!Class) and</commentsAfter>
+  <commentsAfter>--			not a.multiValued</commentsAfter>
+  <commentsAfter>--		)</commentsAfter>
+  <commentsAfter>--	to</commentsAfter>
+  <commentsAfter>--		foreignKey : Relational!Column (</commentsAfter>
+  <commentsAfter>--			name &lt;- a.name + 'Id',</commentsAfter>
+  <commentsAfter>--			type &lt;- thisModule.objectIdType</commentsAfter>
+  <commentsAfter>--		)</commentsAfter>
+  <commentsAfter>--}</commentsAfter>
+  <commentsAfter>---- @atlcompiler atl2006</commentsAfter>
+  <commentsAfter>---- @path ClassDiagram=/ClassDiagram2Relational/ClassDiagram/ClassDiagram.ecore</commentsAfter>
+  <commentsAfter>---- @path Relational=/ClassDiagram2Relational/Relational/Relational.ecore</commentsAfter>
+  <commentsAfter>--module Class2Relational;</commentsAfter>
+  <commentsAfter>--create OUT : Relational from IN : ClassDiagram;</commentsAfter>
+  <commentsAfter>--</commentsAfter>
+  <commentsAfter>--</commentsAfter>
+  <commentsAfter>--helper context String def: firstToLower() : String =</commentsAfter>
+  <commentsAfter>--	self.substring(1, 1).toLower() + self.substring(2, self.size());</commentsAfter>
+  <commentsAfter>--</commentsAfter>
+  <commentsAfter>---- Translation of inheritance not supported yet</commentsAfter>
+  <commentsAfter>--</commentsAfter>
+  <commentsAfter>---- issue: choose an object-id Type (Integer, String?).</commentsAfter>
+  <commentsAfter>---- We choose Integer here, assuming this type is defined in the source model.</commentsAfter>
+  <commentsAfter>--</commentsAfter>
+  <commentsAfter>---- global variable</commentsAfter>
+  <commentsAfter>---- context </commentsAfter>
+  <commentsAfter>--helper def: objectIdType : Relational!Type =</commentsAfter>
+  <commentsAfter>--	ClassDiagram!DataType.allInstances()->select(e | e.name = 'Integer')->first();</commentsAfter>
+  <commentsAfter>--</commentsAfter>
+  <commentsAfter>--rule System2System{</commentsAfter>
+  <commentsAfter>--	from</commentsAfter>
+  <commentsAfter>--		p: ClassDiagram!System</commentsAfter>
+  <commentsAfter>--	to</commentsAfter>
+  <commentsAfter>--		out: Relational!System (</commentsAfter>
+  <commentsAfter>--			schemas &lt;- p.packages, </commentsAfter>
+  <commentsAfter>--			name &lt;- p.name</commentsAfter>
+  <commentsAfter>--		)</commentsAfter>
+  <commentsAfter>--}</commentsAfter>
+  <commentsAfter>--</commentsAfter>
+  <commentsAfter>--rule Package2Schema{</commentsAfter>
+  <commentsAfter>--	from</commentsAfter>
+  <commentsAfter>--		p: ClassDiagram!Package</commentsAfter>
+  <commentsAfter>--	to</commentsAfter>
+  <commentsAfter>--		out: Relational!Schema (</commentsAfter>
+  <commentsAfter>--			name &lt;- p.name,</commentsAfter>
+  <commentsAfter>--			ownedElements &lt;- p.ownedElement	</commentsAfter>
+  <commentsAfter>--		)</commentsAfter>
+  <commentsAfter>--}</commentsAfter>
+  <commentsAfter>--</commentsAfter>
+  <commentsAfter>--rule Class2Table {</commentsAfter>
+  <commentsAfter>--	from</commentsAfter>
+  <commentsAfter>--		c : ClassDiagram!Class</commentsAfter>
+  <commentsAfter>--	to</commentsAfter>
+  <commentsAfter>--		out : Relational!Table (</commentsAfter>
+  <commentsAfter>--			name &lt;- c.name,</commentsAfter>
+  <commentsAfter>----			-- Columns are generated from Attributes in another rule not explicitly called here</commentsAfter>
+  <commentsAfter>--			col &lt;- c.attr</commentsAfter>
+  <commentsAfter>--		)</commentsAfter>
+  <commentsAfter>--}</commentsAfter>
+  <commentsAfter>------</commentsAfter>
+  <commentsAfter>----rule DataType2Type {</commentsAfter>
+  <commentsAfter>----	from</commentsAfter>
+  <commentsAfter>----		dt : ClassDiagram!DataType</commentsAfter>
+  <commentsAfter>----	to</commentsAfter>
+  <commentsAfter>----		out : Relational!Type (</commentsAfter>
+  <commentsAfter>----			name &lt;- dt.name</commentsAfter>
+  <commentsAfter>----		)</commentsAfter>
+  <commentsAfter>----}</commentsAfter>
+  <commentsAfter>------</commentsAfter>
+  <commentsAfter>--rule DataTypeAttribute2Column {</commentsAfter>
+  <commentsAfter>--	from</commentsAfter>
+  <commentsAfter>--		a : ClassDiagram!Attribute --(</commentsAfter>
+  <commentsAfter>--			--a.type.oclIsKindOf(ClassDiagram!DataType)</commentsAfter>
+  <commentsAfter>--		--)</commentsAfter>
+  <commentsAfter>--	to</commentsAfter>
+  <commentsAfter>--		outCol : Relational!Column (</commentsAfter>
+  <commentsAfter>--			name &lt;- a.name--,</commentsAfter>
+  <commentsAfter>--			--type &lt;- a.type</commentsAfter>
+  <commentsAfter>--		)</commentsAfter>
+  <commentsAfter>--}</commentsAfter>
+  <commentsAfter>--</commentsAfter>
+  <commentsAfter>----rule ClassAttribute2Column {</commentsAfter>
+  <commentsAfter>----	from</commentsAfter>
+  <commentsAfter>----		a : ClassDiagram!Attribute (</commentsAfter>
+  <commentsAfter>----			a.type.oclIsKindOf(ClassDiagram!Class) and</commentsAfter>
+  <commentsAfter>----			not a.multiValued</commentsAfter>
+  <commentsAfter>----		)</commentsAfter>
+  <commentsAfter>----	to</commentsAfter>
+  <commentsAfter>----		foreignKey : Relational!Column (</commentsAfter>
+  <commentsAfter>----			name &lt;- a.name + 'Id',</commentsAfter>
+  <commentsAfter>----			type &lt;- thisModule.objectIdType</commentsAfter>
+  <commentsAfter>----		)</commentsAfter>
+  <commentsAfter>----}</commentsAfter>
+  <inModels location="4:30-4:47" name="IN">
+    <metamodel href="new-model#/1"/>
+  </inModels>
+  <outModels location="4:8-4:24" name="OUT">
+    <metamodel href="new-model#/0"/>
+  </outModels>
+  <elements xsi:type="atl:Helper" location="7:1-8:66">
+    <commentsAfter>-- Translation of inheritance not supported yet</commentsAfter>
+    <commentsAfter>-- issue: choose an object-id Type (Integer, String?).</commentsAfter>
+    <commentsAfter>-- We choose Integer here, assuming this type is defined in the source model.</commentsAfter>
+    <commentsAfter>-- global variable</commentsAfter>
+    <commentsAfter>-- context </commentsAfter>
+    <definition location="7:8-8:65">
+      <feature xsi:type="ocl:Operation" location="7:28-8:65" name="firstToLower">
+        <returnType xsi:type="ocl:StringType" location="7:45-7:51"/>
+        <body xsi:type="ocl:OperatorCallExp" location="8:2-8:65" operationName="+">
+          <source xsi:type="ocl:OperationCallExp" location="8:2-8:32" operationName="toLower">
+            <source xsi:type="ocl:OperationCallExp" location="8:2-8:22" operationName="substring">
+              <source xsi:type="ocl:VariableExp" location="8:2-8:6">
+                <referredVariable href="new-model#/2"/>
+              </source>
+              <arguments xsi:type="ocl:IntegerExp" location="8:17-8:18" integerSymbol="1"/>
+              <arguments xsi:type="ocl:IntegerExp" location="8:20-8:21" integerSymbol="1"/>
+            </source>
+          </source>
+          <arguments xsi:type="ocl:OperationCallExp" location="8:35-8:65" operationName="substring">
+            <source xsi:type="ocl:VariableExp" location="8:35-8:39">
+              <referredVariable href="new-model#/3"/>
+            </source>
+            <arguments xsi:type="ocl:IntegerExp" location="8:50-8:51" integerSymbol="2"/>
+            <arguments xsi:type="ocl:OperationCallExp" location="8:53-8:64" operationName="size">
+              <source xsi:type="ocl:VariableExp" location="8:53-8:57">
+                <referredVariable href="new-model#/4"/>
+              </source>
+            </arguments>
+          </arguments>
+        </body>
+      </feature>
+      <context_ location="7:8-7:22">
+        <context_ xsi:type="ocl:StringType" location="7:16-7:22"/>
+      </context_>
+    </definition>
+  </elements>
+  <elements xsi:type="atl:Helper" location="17:1-18:80">
+    <commentsBefore>-- Translation of inheritance not supported yet</commentsBefore>
+    <commentsBefore>-- issue: choose an object-id Type (Integer, String?).</commentsBefore>
+    <commentsBefore>-- We choose Integer here, assuming this type is defined in the source model.</commentsBefore>
+    <commentsBefore>-- global variable</commentsBefore>
+    <commentsBefore>-- context </commentsBefore>
+    <definition location="17:8-18:79">
+      <feature xsi:type="ocl:Attribute" location="17:13-18:79" name="objectIdType">
+        <initExpression xsi:type="ocl:CollectionOperationCallExp" location="18:2-18:79" operationName="first">
+          <source xsi:type="ocl:IteratorExp" location="18:2-18:70" name="select">
+            <source xsi:type="ocl:OperationCallExp" location="18:2-18:38" operationName="allInstances">
+              <source xsi:type="ocl:OclModelElement" location="18:2-18:23" name="DataType">
+                <model href="new-model#/1"/>
+              </source>
+            </source>
+            <body xsi:type="ocl:OperatorCallExp" location="18:51-18:69" operationName="=">
+              <source xsi:type="ocl:NavigationOrAttributeCallExp" location="18:51-18:57" name="name">
+                <source xsi:type="ocl:VariableExp" location="18:51-18:52" referredVariable="//@elements.1/@definition/@feature/@initExpression/@source/@iterators.0"/>
+              </source>
+              <arguments xsi:type="ocl:StringExp" location="18:60-18:69" stringSymbol="Integer"/>
+            </body>
+            <iterators location="18:47-18:48" varName="e" variableExp="//@elements.1/@definition/@feature/@initExpression/@source/@body/@source/@source"/>
+          </source>
+        </initExpression>
+        <type xsi:type="ocl:OclModelElement" location="17:28-17:43" name="Type">
+          <model href="new-model#/0"/>
+        </type>
+      </feature>
+    </definition>
+  </elements>
+  <elements xsi:type="atl:MatchedRule" location="20:1-28:2" name="System2System">
+    <outPattern location="23:2-27:4">
+      <elements xsi:type="atl:SimpleOutPatternElement" location="24:3-27:4" varName="out">
+        <type xsi:type="ocl:OclModelElement" location="24:8-24:25" name="System">
+          <model href="new-model#/0"/>
+        </type>
+        <bindings location="25:4-25:25" propertyName="schemas">
+          <value xsi:type="ocl:NavigationOrAttributeCallExp" location="25:15-25:25" name="packages">
+            <source xsi:type="ocl:VariableExp" location="25:15-25:16" referredVariable="//@elements.2/@inPattern/@elements.0"/>
+          </value>
+        </bindings>
+        <bindings location="26:4-26:18" propertyName="name">
+          <value xsi:type="ocl:NavigationOrAttributeCallExp" location="26:12-26:18" name="name">
+            <source xsi:type="ocl:VariableExp" location="26:12-26:13" referredVariable="//@elements.2/@inPattern/@elements.0"/>
+          </value>
+        </bindings>
+      </elements>
+    </outPattern>
+    <inPattern location="21:2-22:25">
+      <elements xsi:type="atl:SimpleInPatternElement" location="22:3-22:25" varName="p" variableExp="//@elements.2/@outPattern/@elements.0/@bindings.0/@value/@source //@elements.2/@outPattern/@elements.0/@bindings.1/@value/@source">
+        <type xsi:type="ocl:OclModelElement" location="22:6-22:25" name="System">
+          <model href="new-model#/1"/>
+        </type>
+      </elements>
+    </inPattern>
+  </elements>
+  <elements xsi:type="atl:MatchedRule" location="30:1-38:2" name="Package2Schema">
+    <outPattern location="33:2-37:4">
+      <elements xsi:type="atl:SimpleOutPatternElement" location="34:3-37:4" varName="out">
+        <type xsi:type="ocl:OclModelElement" location="34:8-34:25" name="Schema">
+          <model href="new-model#/0"/>
+        </type>
+        <bindings location="35:4-35:82" propertyName="ownedElements">
+          <value xsi:type="ocl:IteratorExp" location="35:21-35:82" name="select">
+            <source xsi:type="ocl:NavigationOrAttributeCallExp" location="35:21-35:35" name="ownedElement">
+              <source xsi:type="ocl:VariableExp" location="35:21-35:22" referredVariable="//@elements.3/@inPattern/@elements.0"/>
+            </source>
+            <body xsi:type="ocl:OperationCallExp" location="35:48-35:81" operationName="oclIsTypeOf">
+              <source xsi:type="ocl:VariableExp" location="35:48-35:49" referredVariable="//@elements.3/@outPattern/@elements.0/@bindings.0/@value/@iterators.0"/>
+              <arguments xsi:type="ocl:OclModelElement" location="35:62-35:80" name="Class">
+                <model href="new-model#/1"/>
+              </arguments>
+            </body>
+            <iterators location="35:44-35:45" varName="e" variableExp="//@elements.3/@outPattern/@elements.0/@bindings.0/@value/@body/@source"/>
+          </value>
+        </bindings>
+        <bindings location="36:4-36:18" propertyName="name">
+          <value xsi:type="ocl:NavigationOrAttributeCallExp" location="36:12-36:18" name="name">
+            <source xsi:type="ocl:VariableExp" location="36:12-36:13" referredVariable="//@elements.3/@inPattern/@elements.0"/>
+          </value>
+        </bindings>
+      </elements>
+    </outPattern>
+    <inPattern location="31:2-32:26">
+      <elements xsi:type="atl:SimpleInPatternElement" location="32:3-32:26" varName="p" variableExp="//@elements.3/@outPattern/@elements.0/@bindings.0/@value/@source/@source //@elements.3/@outPattern/@elements.0/@bindings.1/@value/@source">
+        <type xsi:type="ocl:OclModelElement" location="32:6-32:26" name="Package">
+          <model href="new-model#/1"/>
+        </type>
+      </elements>
+    </inPattern>
+  </elements>
+  <elements xsi:type="atl:MatchedRule" location="40:1-55:2" name="Class2Table">
+    <outPattern location="43:2-49:4">
+      <commentsAfter>--,</commentsAfter>
+      <commentsAfter>--		key : Relational!Column (</commentsAfter>
+      <commentsAfter>--			name &lt;- 'objectId',</commentsAfter>
+      <commentsAfter>--			type &lt;- thisModule.objectIdType</commentsAfter>
+      <commentsAfter>--		)</commentsAfter>
+      <elements xsi:type="atl:SimpleOutPatternElement" location="44:3-49:4" varName="out">
+        <commentsAfter>--,</commentsAfter>
+        <commentsAfter>--		key : Relational!Column (</commentsAfter>
+        <commentsAfter>--			name &lt;- 'objectId',</commentsAfter>
+        <commentsAfter>--			type &lt;- thisModule.objectIdType</commentsAfter>
+        <commentsAfter>--		)</commentsAfter>
+        <type xsi:type="ocl:OclModelElement" location="44:9-44:25" name="Table">
+          <model href="new-model#/0"/>
+        </type>
+        <bindings location="45:4-45:18" propertyName="name">
+          <value xsi:type="ocl:NavigationOrAttributeCallExp" location="45:12-45:18" name="name">
+            <source xsi:type="ocl:VariableExp" location="45:12-45:13" referredVariable="//@elements.4/@inPattern/@elements.0"/>
+          </value>
+        </bindings>
+        <bindings location="47:4-47:48" propertyName="col">
+          <commentsBefore>-- Columns are generated from Attributes in another rule not explicitly called here</commentsBefore>
+          <commentsAfter>--,</commentsAfter>
+          <commentsAfter>--key &lt;- Set {key}</commentsAfter>
+          <value xsi:type="ocl:IteratorExp" location="47:11-47:48" name="select">
+            <commentsAfter>--,</commentsAfter>
+            <commentsAfter>--key &lt;- Set {key}</commentsAfter>
+            <source xsi:type="ocl:NavigationOrAttributeCallExp" location="47:11-47:17" name="attr">
+              <source xsi:type="ocl:VariableExp" location="47:11-47:12" referredVariable="//@elements.4/@inPattern/@elements.0"/>
+            </source>
+            <body xsi:type="ocl:OperatorCallExp" location="47:30-47:47" operationName="not">
+              <source xsi:type="ocl:NavigationOrAttributeCallExp" location="47:34-47:47" name="multiValued">
+                <source xsi:type="ocl:VariableExp" location="47:34-47:35" referredVariable="//@elements.4/@outPattern/@elements.0/@bindings.1/@value/@iterators.0"/>
+              </source>
+            </body>
+            <iterators location="47:26-47:27" varName="e" variableExp="//@elements.4/@outPattern/@elements.0/@bindings.1/@value/@body/@source/@source"/>
+          </value>
+        </bindings>
+      </elements>
+    </outPattern>
+    <inPattern location="41:2-42:25">
+      <elements xsi:type="atl:SimpleInPatternElement" location="42:3-42:25" varName="c" variableExp="//@elements.4/@outPattern/@elements.0/@bindings.0/@value/@source //@elements.4/@outPattern/@elements.0/@bindings.1/@value/@source/@source">
+        <type xsi:type="ocl:OclModelElement" location="42:7-42:25" name="Class">
+          <model href="new-model#/1"/>
+        </type>
+      </elements>
+    </inPattern>
+  </elements>
+  <elements xsi:type="atl:MatchedRule" location="57:1-64:2" name="DataType2Type">
+    <outPattern location="60:2-63:4">
+      <elements xsi:type="atl:SimpleOutPatternElement" location="61:3-63:4" varName="out">
+        <type xsi:type="ocl:OclModelElement" location="61:9-61:24" name="Type">
+          <model href="new-model#/0"/>
+        </type>
+        <bindings location="62:4-62:19" propertyName="name">
+          <value xsi:type="ocl:NavigationOrAttributeCallExp" location="62:12-62:19" name="name">
+            <source xsi:type="ocl:VariableExp" location="62:12-62:14" referredVariable="//@elements.5/@inPattern/@elements.0"/>
+          </value>
+        </bindings>
+      </elements>
+    </outPattern>
+    <inPattern location="58:2-59:29">
+      <elements xsi:type="atl:SimpleInPatternElement" location="59:3-59:29" varName="dt" variableExp="//@elements.5/@outPattern/@elements.0/@bindings.0/@value/@source">
+        <type xsi:type="ocl:OclModelElement" location="59:8-59:29" name="DataType">
+          <model href="new-model#/1"/>
+        </type>
+      </elements>
+    </inPattern>
+  </elements>
+  <elements xsi:type="atl:MatchedRule" location="66:1-76:2" name="DataTypeAttribute2Column">
+    <outPattern location="71:2-75:4">
+      <elements xsi:type="atl:SimpleOutPatternElement" location="72:3-75:4" varName="out">
+        <type xsi:type="ocl:OclModelElement" location="72:9-72:26" name="Column">
+          <model href="new-model#/0"/>
+        </type>
+        <bindings location="73:4-73:18" propertyName="name">
+          <value xsi:type="ocl:NavigationOrAttributeCallExp" location="73:12-73:18" name="name">
+            <source xsi:type="ocl:VariableExp" location="73:12-73:13" referredVariable="//@elements.6/@inPattern/@elements.0"/>
+          </value>
+        </bindings>
+        <bindings location="74:4-74:18" propertyName="type">
+          <value xsi:type="ocl:NavigationOrAttributeCallExp" location="74:12-74:18" name="type">
+            <source xsi:type="ocl:VariableExp" location="74:12-74:13" referredVariable="//@elements.6/@inPattern/@elements.0"/>
+          </value>
+        </bindings>
+      </elements>
+    </outPattern>
+    <inPattern location="67:2-70:4">
+      <elements xsi:type="atl:SimpleInPatternElement" location="68:3-68:29" varName="a" variableExp="//@elements.6/@inPattern/@filter/@source/@source/@source //@elements.6/@inPattern/@filter/@arguments.0/@source/@source //@elements.6/@outPattern/@elements.0/@bindings.0/@value/@source //@elements.6/@outPattern/@elements.0/@bindings.1/@value/@source">
+        <type xsi:type="ocl:OclModelElement" location="68:7-68:29" name="Attribute">
+          <model href="new-model#/1"/>
+        </type>
+      </elements>
+      <filter xsi:type="ocl:OperatorCallExp" location="69:4-69:67" operationName="and">
+        <source xsi:type="ocl:OperationCallExp" location="69:4-69:45" operationName="oclIsKindOf">
+          <source xsi:type="ocl:NavigationOrAttributeCallExp" location="69:4-69:10" name="type">
+            <source xsi:type="ocl:VariableExp" location="69:4-69:5" referredVariable="//@elements.6/@inPattern/@elements.0"/>
+          </source>
+          <arguments xsi:type="ocl:OclModelElement" location="69:23-69:44" name="DataType">
+            <model href="new-model#/1"/>
+          </arguments>
+        </source>
+        <arguments xsi:type="ocl:OperatorCallExp" location="69:50-69:67" operationName="not">
+          <source xsi:type="ocl:NavigationOrAttributeCallExp" location="69:54-69:67" name="multiValued">
+            <source xsi:type="ocl:VariableExp" location="69:54-69:55" referredVariable="//@elements.6/@inPattern/@elements.0"/>
+          </source>
+        </arguments>
+      </filter>
+    </inPattern>
+  </elements>
+  <elements xsi:type="atl:MatchedRule" location="78:1-89:2" name="ClassAttribute2Column">
+    <commentsAfter>--rule ClassAttribute2Column {</commentsAfter>
+    <commentsAfter>--	from</commentsAfter>
+    <commentsAfter>--		a : ClassDiagram!Attribute (</commentsAfter>
+    <commentsAfter>--			a.type.oclIsKindOf(ClassDiagram!Class) and</commentsAfter>
+    <commentsAfter>--			not a.multiValued</commentsAfter>
+    <commentsAfter>--		)</commentsAfter>
+    <commentsAfter>--	to</commentsAfter>
+    <commentsAfter>--		foreignKey : Relational!Column (</commentsAfter>
+    <commentsAfter>--			name &lt;- a.name + 'Id',</commentsAfter>
+    <commentsAfter>--			type &lt;- thisModule.objectIdType</commentsAfter>
+    <commentsAfter>--		)</commentsAfter>
+    <commentsAfter>--}</commentsAfter>
+    <commentsAfter>---- @atlcompiler atl2006</commentsAfter>
+    <commentsAfter>---- @path ClassDiagram=/ClassDiagram2Relational/ClassDiagram/ClassDiagram.ecore</commentsAfter>
+    <commentsAfter>---- @path Relational=/ClassDiagram2Relational/Relational/Relational.ecore</commentsAfter>
+    <commentsAfter>--module Class2Relational;</commentsAfter>
+    <commentsAfter>--create OUT : Relational from IN : ClassDiagram;</commentsAfter>
+    <commentsAfter>--</commentsAfter>
+    <commentsAfter>--</commentsAfter>
+    <commentsAfter>--helper context String def: firstToLower() : String =</commentsAfter>
+    <commentsAfter>--	self.substring(1, 1).toLower() + self.substring(2, self.size());</commentsAfter>
+    <commentsAfter>--</commentsAfter>
+    <commentsAfter>---- Translation of inheritance not supported yet</commentsAfter>
+    <commentsAfter>--</commentsAfter>
+    <commentsAfter>---- issue: choose an object-id Type (Integer, String?).</commentsAfter>
+    <commentsAfter>---- We choose Integer here, assuming this type is defined in the source model.</commentsAfter>
+    <commentsAfter>--</commentsAfter>
+    <commentsAfter>---- global variable</commentsAfter>
+    <commentsAfter>---- context </commentsAfter>
+    <commentsAfter>--helper def: objectIdType : Relational!Type =</commentsAfter>
+    <commentsAfter>--	ClassDiagram!DataType.allInstances()->select(e | e.name = 'Integer')->first();</commentsAfter>
+    <commentsAfter>--</commentsAfter>
+    <commentsAfter>--rule System2System{</commentsAfter>
+    <commentsAfter>--	from</commentsAfter>
+    <commentsAfter>--		p: ClassDiagram!System</commentsAfter>
+    <commentsAfter>--	to</commentsAfter>
+    <commentsAfter>--		out: Relational!System (</commentsAfter>
+    <commentsAfter>--			schemas &lt;- p.packages, </commentsAfter>
+    <commentsAfter>--			name &lt;- p.name</commentsAfter>
+    <commentsAfter>--		)</commentsAfter>
+    <commentsAfter>--}</commentsAfter>
+    <commentsAfter>--</commentsAfter>
+    <commentsAfter>--rule Package2Schema{</commentsAfter>
+    <commentsAfter>--	from</commentsAfter>
+    <commentsAfter>--		p: ClassDiagram!Package</commentsAfter>
+    <commentsAfter>--	to</commentsAfter>
+    <commentsAfter>--		out: Relational!Schema (</commentsAfter>
+    <commentsAfter>--			name &lt;- p.name,</commentsAfter>
+    <commentsAfter>--			ownedElements &lt;- p.ownedElement	</commentsAfter>
+    <commentsAfter>--		)</commentsAfter>
+    <commentsAfter>--}</commentsAfter>
+    <commentsAfter>--</commentsAfter>
+    <commentsAfter>--rule Class2Table {</commentsAfter>
+    <commentsAfter>--	from</commentsAfter>
+    <commentsAfter>--		c : ClassDiagram!Class</commentsAfter>
+    <commentsAfter>--	to</commentsAfter>
+    <commentsAfter>--		out : Relational!Table (</commentsAfter>
+    <commentsAfter>--			name &lt;- c.name,</commentsAfter>
+    <commentsAfter>----			-- Columns are generated from Attributes in another rule not explicitly called here</commentsAfter>
+    <commentsAfter>--			col &lt;- c.attr</commentsAfter>
+    <commentsAfter>--		)</commentsAfter>
+    <commentsAfter>--}</commentsAfter>
+    <commentsAfter>------</commentsAfter>
+    <commentsAfter>----rule DataType2Type {</commentsAfter>
+    <commentsAfter>----	from</commentsAfter>
+    <commentsAfter>----		dt : ClassDiagram!DataType</commentsAfter>
+    <commentsAfter>----	to</commentsAfter>
+    <commentsAfter>----		out : Relational!Type (</commentsAfter>
+    <commentsAfter>----			name &lt;- dt.name</commentsAfter>
+    <commentsAfter>----		)</commentsAfter>
+    <commentsAfter>----}</commentsAfter>
+    <commentsAfter>------</commentsAfter>
+    <commentsAfter>--rule DataTypeAttribute2Column {</commentsAfter>
+    <commentsAfter>--	from</commentsAfter>
+    <commentsAfter>--		a : ClassDiagram!Attribute --(</commentsAfter>
+    <commentsAfter>--			--a.type.oclIsKindOf(ClassDiagram!DataType)</commentsAfter>
+    <commentsAfter>--		--)</commentsAfter>
+    <commentsAfter>--	to</commentsAfter>
+    <commentsAfter>--		outCol : Relational!Column (</commentsAfter>
+    <commentsAfter>--			name &lt;- a.name--,</commentsAfter>
+    <commentsAfter>--			--type &lt;- a.type</commentsAfter>
+    <commentsAfter>--		)</commentsAfter>
+    <commentsAfter>--}</commentsAfter>
+    <commentsAfter>--</commentsAfter>
+    <commentsAfter>----rule ClassAttribute2Column {</commentsAfter>
+    <commentsAfter>----	from</commentsAfter>
+    <commentsAfter>----		a : ClassDiagram!Attribute (</commentsAfter>
+    <commentsAfter>----			a.type.oclIsKindOf(ClassDiagram!Class) and</commentsAfter>
+    <commentsAfter>----			not a.multiValued</commentsAfter>
+    <commentsAfter>----		)</commentsAfter>
+    <commentsAfter>----	to</commentsAfter>
+    <commentsAfter>----		foreignKey : Relational!Column (</commentsAfter>
+    <commentsAfter>----			name &lt;- a.name + 'Id',</commentsAfter>
+    <commentsAfter>----			type &lt;- thisModule.objectIdType</commentsAfter>
+    <commentsAfter>----		)</commentsAfter>
+    <commentsAfter>----}</commentsAfter>
+    <outPattern location="84:2-88:4">
+      <elements xsi:type="atl:SimpleOutPatternElement" location="85:3-88:4" varName="foreignKey">
+        <type xsi:type="ocl:OclModelElement" location="85:16-85:33" name="Column">
+          <model href="new-model#/0"/>
+        </type>
+        <bindings location="86:4-86:18" propertyName="name">
+          <commentsAfter>--+ 'Id'--,</commentsAfter>
+          <commentsAfter>--type &lt;- thisModule.objectIdType</commentsAfter>
+          <value xsi:type="ocl:NavigationOrAttributeCallExp" location="86:12-86:18" name="name">
+            <commentsAfter>--+ 'Id'--,</commentsAfter>
+            <commentsAfter>--type &lt;- thisModule.objectIdType</commentsAfter>
+            <source xsi:type="ocl:VariableExp" location="86:12-86:13" referredVariable="//@elements.7/@inPattern/@elements.0"/>
+          </value>
+        </bindings>
+      </elements>
+    </outPattern>
+    <inPattern location="79:2-83:4">
+      <elements xsi:type="atl:SimpleInPatternElement" location="80:3-80:29" varName="a" variableExp="//@elements.7/@inPattern/@filter/@source/@source/@source //@elements.7/@inPattern/@filter/@arguments.0/@source/@source //@elements.7/@outPattern/@elements.0/@bindings.0/@value/@source">
+        <type xsi:type="ocl:OclModelElement" location="80:7-80:29" name="Attribute">
+          <model href="new-model#/1"/>
+        </type>
+      </elements>
+      <filter xsi:type="ocl:OperatorCallExp" location="81:4-82:21" operationName="and">
+        <source xsi:type="ocl:OperationCallExp" location="81:4-81:42" operationName="oclIsKindOf">
+          <source xsi:type="ocl:NavigationOrAttributeCallExp" location="81:4-81:10" name="type">
+            <source xsi:type="ocl:VariableExp" location="81:4-81:5" referredVariable="//@elements.7/@inPattern/@elements.0"/>
+          </source>
+          <arguments xsi:type="ocl:OclModelElement" location="81:23-81:41" name="Class">
+            <model href="new-model#/1"/>
+          </arguments>
+        </source>
+        <arguments xsi:type="ocl:OperatorCallExp" location="82:4-82:21" operationName="not">
+          <source xsi:type="ocl:NavigationOrAttributeCallExp" location="82:8-82:21" name="multiValued">
+            <source xsi:type="ocl:VariableExp" location="82:8-82:9" referredVariable="//@elements.7/@inPattern/@elements.0"/>
+          </source>
+        </arguments>
+      </filter>
+    </inPattern>
+  </elements>
+</atl:Module>
