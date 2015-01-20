@@ -43,13 +43,8 @@ import org.eclipse.m2m.atl.reactive.model.LazyModelDynamicEObjectImpl;
 public class EMFVMLazyTransformation implements ILazyTransformation{
 	
 	private Map<String, IModel> models = new HashMap<String, IModel>();
-	public Map<String, IModel> getModels() {
-		return models;
-	}
-
-	public void setModels(Map<String, IModel> models) {
-		this.models = models;
-	}
+	private Map<String, IModel> targetModels = new HashMap<String, IModel>();
+	
 
 	private ExecEnv execEnv;
 	private ASMModule asmModule;
@@ -63,14 +58,31 @@ public class EMFVMLazyTransformation implements ILazyTransformation{
 	long endTime = 0;
 	double totalTime = 0.0;
 	TransientLinkSet traceabilityLinks;
+	LazyModelDynamicEObjectImpl notifyingObj;
+	String notifyingFeature;
+	Boolean toNotify = false;
+	
+	public Map<String, IModel> getModels() {
+		return models;
+	}
+
+	public void setModels(Map<String, IModel> models) {
+		this.models = models;
+	}
+	
+	public ExecEnv getExecEnv() {
+		return execEnv;
+	}
+
+	public void setExecEnv(ExecEnv execEnv) {
+		this.execEnv = execEnv;
+	}
 	
 	public TransientLinkSet getTraceabilityLinks() {
 		return traceabilityLinks;
 	}
 
-	LazyModelDynamicEObjectImpl notifyingObj;
-	String notifyingFeature;
-	Boolean toNotify = false;
+	
 	
 	public void setToNotify(Boolean value){
 		toNotify = value;
@@ -130,6 +142,10 @@ public class EMFVMLazyTransformation implements ILazyTransformation{
 	public Boolean isBusy() {
 		return busy;
 	}
+	
+	public Boolean isOutput(EMFModel model){
+		return targetModels.containsValue(model);
+	}
 
 
 	public void setBusy(Boolean busy) {
@@ -181,6 +197,7 @@ public class EMFVMLazyTransformation implements ILazyTransformation{
 		EMFLazyModel model = getLazyModel(referenceModelName, resource);
 		model.setIsTarget(true);
 		models.put(name, model);
+		targetModels.put(name, model);
 	}
 	
 	public EMFModel getTargetModel(String name){
@@ -363,7 +380,7 @@ public class EMFVMLazyTransformation implements ILazyTransformation{
 				
 				if (localVars[0] instanceof EObject){
 					EMFModel model = (EMFModel) execEnv.getModelOf(localVars[0]);
-					if (model != null && !model.isTarget()){ //&& !model.isTarget()){
+					if (model != null && !isOutput(model)){ //){
 							return true;
 					}
 				}
@@ -517,6 +534,46 @@ public class EMFVMLazyTransformation implements ILazyTransformation{
 		transformation.setBusy(true);
 		call("elementDeleted", source);
 		transformation.setBusy(false);	
+	}
+	
+	/**
+	 * Invalidates a given feature (binding) in all the target elements produced by a given
+	 * rule.
+	 * @param ruleName
+	 * @param propertyName (binding name)
+	 */
+	public void invalidateAllRuleBindings(String ruleName, String propertyName){
+		List<TransientLink> links = this.traceabilityLinks.getLinksByRule(ruleName);
+		for (TransientLink link : links){
+			List<Object> targets = link.getTargetElementsList();
+			for (Object target : targets){
+				//We need to check if the feature exist in the target element, for the case 
+				//of multiple target elements
+				//FIXME pass as a parameter which of the multiple output elements of the rules
+				//is affected. For the moment, if two output pattern element contain a binding 
+				//with the same name, both get invalidated
+				if (((EObject)target).eClass().getEStructuralFeature(propertyName) != null){
+					LazyModelDynamicEObjectImpl targetEObject = (LazyModelDynamicEObjectImpl) target;
+					targetEObject.setFeaturesFlagMapElement(propertyName, false);
+				}
+			}
+		}
+	}
+	
+	public void invalidateRule(String ruleName){
+		List<TransientLink> links = this.traceabilityLinks.getLinksByRule(ruleName);
+		for (TransientLink link : links){
+			List<Object> targets = link.getTargetElementsList();
+			for (Object target : targets){
+				//We invalidate the target element. If used, an exception will be thrown
+				LazyModelDynamicEObjectImpl targetEObject = (LazyModelDynamicEObjectImpl) target;
+				invalidateTarget(targetEObject);
+				//Then, we have to invalidate the containment reference
+				EObject parentEObject = targetEObject.eContainer();
+				TransientLink parentLink = traceabilityLinks.getLinkByTargetElement(parentEObject);
+				//Then, we invalidate the feature
+			}
+		}
 	}
 	
 	/**

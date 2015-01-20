@@ -330,14 +330,16 @@ public class ReactiveTransformationLauncher extends EMFVMLauncher {
 							(EMFVMLazyTransformation) getTransformation(),
 							initialTargetElement));
 		} else {
-			getInitialTargetElement().eAdapters().add(
-					new StandardTargetAdapter(
-							(EMFVMLazyTransformation) getTransformation()));
+			StandardTargetAdapter sta = new StandardTargetAdapter(
+					(EMFVMLazyTransformation) getTransformation());
+			sta.setHandleCustomNotification(false);
+			getInitialTargetElement().eAdapters().add(sta);
+			sta.setHandleCustomNotification(true);
 		}
 		// Add source model adapter
-		getInitialSourceElement().eAdapters().add(
-				new StandardSourceAdapter(
-						(EMFVMLazyTransformation) getTransformation()));
+		//getInitialSourceElement().eAdapters().add(
+		//		new StandardSourceAdapter(
+		//				(EMFVMLazyTransformation) getTransformation()));
 	}
 
 	private static void init(String metamodelURI, File file) {
