@@ -621,6 +621,10 @@ public class EMFModelAdapter implements IModelAdapter {
 													.getString(
 															"EMFModelAdapter.NON_ALLOWED_REFERENCE", new Object[] {settableValue, name})); //$NON-NLS-1$
 								}
+								//Here we remove the element from the root as it will be contained elsewhere
+								//this also save us the last finalizeModel commitToResource Step
+								if (feature instanceof EReference && ((EReference) feature).isContainment()) 
+											((EMFModel) execEnv.getModelOf(eo)).getResource().getContents().remove(v);
 							} else {
 								oldCol.add(v);
 							}
@@ -776,9 +780,9 @@ public class EMFModelAdapter implements IModelAdapter {
 	 * @see org.eclipse.m2m.atl.engine.emfvm.adapter.IModelAdapter#finalizeModel(org.eclipse.m2m.atl.core.IModel)
 	 */
 	public void finalizeModel(IModel model) {
-		if (model.isTarget()) {
-			((EMFModel)model).commitToResource();
-		}
+		//if (model.isTarget()) {
+		//	((EMFModel)model).commitToResource();
+		//}
 	}
 
 	/**
