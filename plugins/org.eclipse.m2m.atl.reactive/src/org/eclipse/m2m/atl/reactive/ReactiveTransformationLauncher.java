@@ -221,7 +221,7 @@ public class ReactiveTransformationLauncher extends EMFVMLauncher {
 		transformation.init(
 				new ASMXMLReader().read(new BufferedInputStream(is)), false);
 
-		initialSourceElement = getSourceResource().getContents().get(0);
+		initialSourceElement = getInitialSourceElement();
 
 		// TODO Check setBusy
 		((EMFVMLazyTransformation) getTransformation()).setBusy(true);
@@ -235,7 +235,7 @@ public class ReactiveTransformationLauncher extends EMFVMLauncher {
 
 		// Add target model adapter
 		if (this.isSerializable()) {
-			getInitialTargetElement().eAdapters().add(
+			getTargetResource().eAdapters().add(
 					new StandardAndSaveTargetAdapter(
 							(EMFVMLazyTransformation) getTransformation(),
 							initialTargetElement));
@@ -243,13 +243,17 @@ public class ReactiveTransformationLauncher extends EMFVMLauncher {
 			StandardTargetAdapter sta = new StandardTargetAdapter(
 					(EMFVMLazyTransformation) getTransformation());
 			sta.setHandleCustomNotification(false);
-			getInitialTargetElement().eAdapters().add(sta);
+			//getInitialTargetElement().eAdapters().add(sta);
+			getTargetResource().eAdapters().add(sta);
 			sta.setHandleCustomNotification(true);
-		}
-		// Add source model adapter
-		getInitialSourceElement().eAdapters().add(
-				new StandardSourceAdapter(
+		}		
+		// add source model adapter to the source resource 
+		getSourceResource().eAdapters().add(new StandardSourceAdapter(
 						(EMFVMLazyTransformation) getTransformation()));
+		// Add source model adapter
+//		getInitialSourceElement().eAdapters().add(
+//				new StandardSourceAdapter(
+//						(EMFVMLazyTransformation) getTransformation()));
 	}
 
 	/**
@@ -364,6 +368,7 @@ public class ReactiveTransformationLauncher extends EMFVMLauncher {
 				p.setNsURI(nsURI);
 			}
 			EPackage.Registry.INSTANCE.put(nsURI, p);
+			EPackage.Registry.INSTANCE.put(p.getName(), p);
 		}
 
 		// For all the EDataTypes sets instanceClassName = name if it was null.
@@ -431,6 +436,9 @@ public class ReactiveTransformationLauncher extends EMFVMLauncher {
 	}
 
 	public EObject getInitialSourceElement() {
+		if (initialSourceElement == null) 
+			initialSourceElement = getSourceResource().getContents().get(0);
+		
 		return initialSourceElement;
 	}
 
