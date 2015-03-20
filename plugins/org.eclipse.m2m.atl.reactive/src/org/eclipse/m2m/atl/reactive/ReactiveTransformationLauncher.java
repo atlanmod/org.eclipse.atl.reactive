@@ -40,26 +40,23 @@ import org.eclipse.m2m.atl.reactive.model.LazyModelDynamicEObjectImpl;
 
 public class ReactiveTransformationLauncher extends EMFVMLauncher {
 
-	private boolean handleCustomNotification = true;
-	private boolean isSerializable = false;
 	public static final String LAUNCHER_NAME = "Reactive VM"; //$NON-NLS-1$
 	public static final String MODEL_FACTORY_NAME = "EMFLazy"; //$NON-NLS-1$
-	private Resource sourceResource;
-	private Resource targetResource;
-	private ILazyTransformation transformation = new EMFVMLazyTransformation();
-	private IModel sourceModel = null;
-	private IModel targetModel = null;
+	protected ILazyTransformation transformation = new EMFVMLazyTransformation();
+	private TransformationLogger logger = new TransformationLogger();;
 
-	private TransformationLogger logger;
-
-	private EObject initialSourceElement;
-	private LazyModelDynamicEObjectImpl initialTargetElement;
-
-	public ReactiveTransformationLauncher() {
-		super();
-		this.isSerializable = false;
-		this.logger = new TransformationLogger();
-	}
+	// in/out models
+	protected EMFModel sourceModel = null;
+	protected EMFModel targetModel = null;
+	// metamodel symbolic names
+	protected String sourceMetaModel;
+	protected String targetMetaModel;
+	// to set existing Resources
+	protected Resource sourceResource;
+	protected Resource targetResource;
+	// initial elements
+	protected EObject initialSourceElement;
+	protected LazyModelDynamicEObjectImpl initialTargetElement;
 
 	/**
 	 * {@inheritDoc}
@@ -69,8 +66,12 @@ public class ReactiveTransformationLauncher extends EMFVMLauncher {
 	 */
 	public void addInModel(IModel model, String name, String referenceModelName) {
 		model.setIsTarget(false);
-		if (this.sourceModel == null)
-			this.sourceModel = model;
+		if (this.sourceModel == null) {
+			this.sourceModel = (EMFModel) model;
+			this.sourceResource = sourceModel.getResource();
+		}
+		if (this.sourceMetaModel == null)
+			this.sourceMetaModel = referenceModelName;
 		addModel(model, name, referenceModelName);
 	}
 
@@ -82,8 +83,12 @@ public class ReactiveTransformationLauncher extends EMFVMLauncher {
 	 */
 	public void addOutModel(IModel model, String name, String referenceModelName) {
 		model.setIsTarget(true);
-		if (this.targetModel == null)
-			this.targetModel = model;
+		if (this.targetModel == null) {
+			this.targetModel = (EMFModel) model;
+			this.targetResource = targetModel.getResource();
+		}
+		if (this.targetMetaModel == null)
+			this.targetMetaModel = referenceModelName;
 		addModel(model, name, referenceModelName);
 	}
 
@@ -134,61 +139,104 @@ public class ReactiveTransformationLauncher extends EMFVMLauncher {
 		// HERE WE START WORKING WITH THE MODELS
 
 		// Add target model adapter
-		if (this.isSerializable()) {
-			getInitialTargetElement().eAdapters().add(
-					new StandardAndSaveTargetAdapter(
-							(EMFVMLazyTransformation) transformation,
-							initialTargetElement));
-		} else {
-			StandardTargetAdapter sta = new StandardTargetAdapter(
-					(EMFVMLazyTransformation) transformation);
-			sta.setHandleCustomNotification(false);
-			getInitialTargetElement().eAdapters().add(sta);
-			sta.setHandleCustomNotification(true);
-		}
+
+		StandardTargetAdapter sta = new StandardTargetAdapter(
+				(EMFVMLazyTransformation) transformation);
+		sta.setHandleCustomNotification(false);
+		getInitialTargetElement().eAdapters().add(sta);
+		sta.setHandleCustomNotification(true);
+
 		// Add source model adapter
 		getInitialSourceElement().eAdapters().add(
 				new StandardSourceAdapter(
 						(EMFVMLazyTransformation) transformation));
-		
-//		Display.getDefault().syncExec(new Runnable() {
-//			public void run() {
-//				try {
-//					PlatformUI.getWorkbench().getWorkbenchWindows()[0]
-//							.getPages()[0]
-//							.openEditor(new URIEditorInput(
-//									((EMFModel) sourceModel).getResource()
-//											.getURI()),
-//									"org.eclipse.emf.ecore.presentation.ReflectiveEditorID");
-//				} catch (PartInitException e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		});
+
+		// Display.getDefault().syncExec(new Runnable() {
+		// public void run() {
+		// try {
+		// PlatformUI.getWorkbench().getWorkbenchWindows()[0]
+		// .getPages()[0]
+		// .openEditor(new URIEditorInput(
+		// ((EMFModel) sourceModel).getResource()
+		// .getURI()),
+		// "org.eclipse.emf.ecore.presentation.ReflectiveEditorID");
+		// } catch (PartInitException e) {
+		// e.printStackTrace();
+		// }
+		// }
+		// });
 
 		return null;
 	}
 
-	public void initialize(String sourceMetamodelPath,
+	public void initialize(String asmPath) throws FileNotFoundException {
+		// Fill transformation
+		transformation.addReferenceModel(sourceMetaModel, sourceModel
+				.getReferenceModel().getResource());
+		transformation.addSourceModel("IN", sourceMetaModel, sourceResource);
+		transformation.addReferenceModel(targetMetaModel, targetModel
+				.getReferenceModel().getResource());
+		transformation.addTargetModel("OUT", targetMetaModel, targetResource);
+
+		File asmFile = new File(asmPath);
+		InputStream is = new FileInputStream(asmFile);
+
+		transformation.init(
+				new ASMXMLReader().read(new BufferedInputStream(is)), false);
+
+		initialSourceElement = sourceResource.getContents().get(0);
+
+		// TODO Check setBusy
+		((EMFVMLazyTransformation) getTransformation()).setBusy(true);
+		getTransformation().call("elementCreated", initialSourceElement);
+		((EMFVMLazyTransformation) getTransformation()).setBusy(false);
+
+		initialTargetElement = (LazyModelDynamicEObjectImpl) targetResource
+				.getContents().get(0);
+
+		// HERE WE START WORKING WITH THE MODELS
+
+		// Add target model adapter
+
+		StandardTargetAdapter sta = new StandardTargetAdapter(
+				(EMFVMLazyTransformation) getTransformation());
+		sta.setHandleCustomNotification(false);
+		getInitialTargetElement().eAdapters().add(sta);
+		sta.setHandleCustomNotification(true);
+
+		// Add source model adapter
+		getInitialSourceElement().eAdapters().add(
+				new StandardSourceAdapter(
+						(EMFVMLazyTransformation) getTransformation()));
+	}
+
+	public void initializeGood(String sourceMetamodelPath,
 			String sourceMetamodelName, String targetMetamodelPath,
 			String targetMetamodelName, String sourceModelPath,
-			String targetModelPath, String asmPath)
-			throws FileNotFoundException {
+			String targetModelPath, EMFModel sourceModel, EMFModel targetModel,
+			String asmPath) throws FileNotFoundException {
 
 		ResourceSet resourceSet = new ResourceSetImpl();
+		URI fileUri;
+		Resource sourceReferenceResource;
+		if (sourceModel == null) {
+			// Registering source metamodel
+			File MM1 = new File(sourceMetamodelPath);
+			fileUri = URI.createFileURI(MM1.getAbsolutePath());
+			Resource MMResource = resourceSet.getResource(fileUri, true);
+			ReactiveTransformationLauncher.init(MMResource.getURI().toString(),
+					MM1);
 
-		// Registering source metamodel
-		File MM1 = new File(sourceMetamodelPath);
-		URI fileUri = URI.createFileURI(MM1.getAbsolutePath());
-		Resource MMResource = resourceSet.getResource(fileUri, true);
-		ReactiveTransformationLauncher
-				.init(MMResource.getURI().toString(), MM1);
-		Resource sourceReferenceResource = resourceSet.getResource(
-				URI.createURI(sourceMetamodelName), false);
+			sourceReferenceResource = resourceSet.getResource(
+					URI.createURI(sourceMetamodelName), false);
+		} else {
+			sourceReferenceResource = sourceModel.getReferenceModel()
+					.getResource();
+		}
 
 		// Registering target metamodel
 		File MM2 = new File(targetMetamodelPath);
-		fileUri = URI.createFileURI(MM1.getAbsolutePath());
+		fileUri = URI.createFileURI(MM2.getAbsolutePath());
 		Resource MM2Resource = resourceSet.getResource(fileUri, true);
 		ReactiveTransformationLauncher.init(MM2Resource.getURI().toString(),
 				MM2);
@@ -199,12 +247,13 @@ public class ReactiveTransformationLauncher extends EMFVMLauncher {
 		if (sourceResource == null) {
 			sourceResource = resourceSet.getResource(fileUri, true);
 		}
-		// sourceResource = resourceSet.getResource(fileUri, true);
 
 		// Open target model
 		URI uri = URI.createURI(targetModelPath);
-		targetResource = resourceSet.createResource(uri);
 
+		if (targetResource == null) {
+			targetResource = resourceSet.createResource(uri);
+		}
 		// Fill transformation
 		transformation.addReferenceModel(sourceMetamodelName,
 				sourceReferenceResource);
@@ -234,18 +283,67 @@ public class ReactiveTransformationLauncher extends EMFVMLauncher {
 		// HERE WE START WORKING WITH THE MODELS
 
 		// Add target model adapter
-		if (this.isSerializable()) {
-			getInitialTargetElement().eAdapters().add(
-					new StandardAndSaveTargetAdapter(
-							(EMFVMLazyTransformation) getTransformation(),
-							initialTargetElement));
-		} else {
-			StandardTargetAdapter sta = new StandardTargetAdapter(
-					(EMFVMLazyTransformation) getTransformation());
-			sta.setHandleCustomNotification(false);
-			getInitialTargetElement().eAdapters().add(sta);
-			sta.setHandleCustomNotification(true);
-		}
+
+		StandardTargetAdapter sta = new StandardTargetAdapter(
+				(EMFVMLazyTransformation) getTransformation());
+		sta.setHandleCustomNotification(false);
+		getInitialTargetElement().eAdapters().add(sta);
+		sta.setHandleCustomNotification(true);
+
+		// Add source model adapter
+		getInitialSourceElement().eAdapters().add(
+				new StandardSourceAdapter(
+						(EMFVMLazyTransformation) getTransformation()));
+	}
+
+	public void initialize(String sourceMetamodelName,
+			String targetMetamodelName, EMFModel sourceModel,
+			EMFModel targetModel, String asmPath) throws FileNotFoundException {
+
+		Resource sourceReferenceResource = sourceModel.getReferenceModel()
+				.getResource();
+
+		sourceResource = sourceModel.getResource();
+
+		// Open target model
+		targetResource = targetModel.getResource();
+
+		// Fill transformation
+		transformation.addReferenceModel(sourceMetamodelName,
+				sourceReferenceResource);
+		transformation
+				.addSourceModel("IN", sourceMetamodelName, sourceResource);
+		transformation.addReferenceModel(targetMetamodelName, targetModel
+				.getReferenceModel().getResource());
+		transformation.addTargetModel("OUT", targetMetamodelName,
+				targetResource);
+
+		File asmFile = new File(asmPath);
+		InputStream is = new FileInputStream(asmFile);
+
+		transformation.init(
+				new ASMXMLReader().read(new BufferedInputStream(is)), false);
+
+		initialSourceElement = getSourceResource().getContents().get(0);
+
+		// TODO Check setBusy
+		((EMFVMLazyTransformation) getTransformation()).setBusy(true);
+		getTransformation().call("elementCreated", initialSourceElement);
+		((EMFVMLazyTransformation) getTransformation()).setBusy(false);
+
+		initialTargetElement = (LazyModelDynamicEObjectImpl) getTargetResource()
+				.getContents().get(0);
+
+		// HERE WE START WORKING WITH THE MODELS
+
+		// Add target model adapter
+
+		StandardTargetAdapter sta = new StandardTargetAdapter(
+				(EMFVMLazyTransformation) getTransformation());
+		sta.setHandleCustomNotification(false);
+		getInitialTargetElement().eAdapters().add(sta);
+		sta.setHandleCustomNotification(true);
+
 		// Add source model adapter
 		getInitialSourceElement().eAdapters().add(
 				new StandardSourceAdapter(
@@ -324,22 +422,17 @@ public class ReactiveTransformationLauncher extends EMFVMLauncher {
 		// HERE WE START WORKING WITH THE MODELS
 
 		// Add target model adapter
-		if (this.isSerializable()) {
-			getInitialTargetElement().eAdapters().add(
-					new StandardAndSaveTargetAdapter(
-							(EMFVMLazyTransformation) getTransformation(),
-							initialTargetElement));
-		} else {
-			StandardTargetAdapter sta = new StandardTargetAdapter(
-					(EMFVMLazyTransformation) getTransformation());
-			sta.setHandleCustomNotification(false);
-			getInitialTargetElement().eAdapters().add(sta);
-			sta.setHandleCustomNotification(true);
-		}
+
+		StandardTargetAdapter sta = new StandardTargetAdapter(
+				(EMFVMLazyTransformation) getTransformation());
+		sta.setHandleCustomNotification(false);
+		getInitialTargetElement().eAdapters().add(sta);
+		sta.setHandleCustomNotification(true);
+
 		// Add source model adapter
-		//getInitialSourceElement().eAdapters().add(
-		//		new StandardSourceAdapter(
-		//				(EMFVMLazyTransformation) getTransformation()));
+		// getInitialSourceElement().eAdapters().add(
+		// new StandardSourceAdapter(
+		// (EMFVMLazyTransformation) getTransformation()));
 	}
 
 	private static void init(String metamodelURI, File file) {
@@ -436,18 +529,6 @@ public class ReactiveTransformationLauncher extends EMFVMLauncher {
 
 	public LazyModelDynamicEObjectImpl getInitialTargetElement() {
 		return initialTargetElement;
-	}
-
-	public void setHandleCustomNotification(boolean handleCustomNotification) {
-		this.handleCustomNotification = handleCustomNotification;
-	}
-
-	public boolean isHandleCustomNotification() {
-		return handleCustomNotification;
-	}
-
-	public boolean isSerializable() {
-		return isSerializable;
 	}
 
 	/**
