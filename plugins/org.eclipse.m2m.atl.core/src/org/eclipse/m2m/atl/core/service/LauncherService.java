@@ -135,22 +135,6 @@ public final class LauncherService {
 		// LAUNCH
 		Object transformationResult = launcher.launch(mode, monitor, options, (Object[])modules);
 
-		// OUTPUT MODELS EXTRACTION
-		for (Iterator<String> i = outModels.keySet().iterator(); i.hasNext();) {
-			String modelName = i.next();
-			extractor.extract(launcher.getModel(modelName), paths.get(modelName), options);
-		}
-
-		// INPUT/OUTPUT MODELS EXTRACTION
-		for (Iterator<String> i = inoutModels.keySet().iterator(); i.hasNext();) {
-			String modelName = i.next();
-			String path = paths.get(getRefinedModelName(modelName));
-			if (path != null) {
-				extractor.extract(launcher.getModel(modelName), path, options);
-			}
-			// otherwise its considered as an input model
-		}
-
 		return transformationResult;
 	}
 
