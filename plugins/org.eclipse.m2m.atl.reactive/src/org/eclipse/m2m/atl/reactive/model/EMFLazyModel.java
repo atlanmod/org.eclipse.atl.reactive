@@ -14,13 +14,12 @@ import org.eclipse.m2m.atl.core.emf.EMFReferenceModel;
 public class EMFLazyModel extends EMFModel{
 	
 	private LazyModelFactory lazyModelFactory;
-	private EMFModelFactory modelFactory;
 
 	public EMFLazyModel(EMFReferenceModel referenceModel, EMFModelFactory mf) {
 		super(referenceModel, mf);
 		if (getResource()==null) {
 			ResourceSet resourceSet = new ResourceSetImpl();
-			URI uri = URI.createURI("temp.xmi");
+			URI uri = URI.createURI("new-model");
 			setResource(resourceSet.createResource(uri));
 		}
 	}
@@ -32,7 +31,7 @@ public class EMFLazyModel extends EMFModel{
 	public Object newElement(Object metaElement) {
 		Resource mainResource = getResource();
 		if (mainResource == null) {
-			mainResource = modelFactory.getResourceSet().createResource(URI.createURI("new-model")); //$NON-NLS-1$
+			mainResource = (new ResourceSetImpl()).createResource(URI.createURI("new-model")); //$NON-NLS-1$
 			// TODO [Resource.Factory issues] use the correct factory
 			// MAIN ISSUE HERE...
 			// resource must be created within the model creation
