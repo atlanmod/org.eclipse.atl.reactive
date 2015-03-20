@@ -154,7 +154,7 @@ public class EMFModel implements IModel {
 	 * @param resource
 	 *            the resource to set
 	 */
-	protected void setResource(Resource resource) {
+	public void setResource(Resource resource) {
 		this.resource = resource;
 	}
 
