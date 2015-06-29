@@ -12,7 +12,7 @@ In order to import and compile the source code, and Eclipse IDE with the followi
 
  * EMF Model Transactions SDK
 
-In order to Install these plugins, from the eclipse IDE go to: menu Help->Install new software->Modeling and select  the afforementioned plugins to install.
+In order to Install these plugins, from the eclipse IDE go to: menu *Help->Install new software->Modeling* and select  the afforementioned plugins for installation.
 
 ##Installation of ReactiveATL in Eclipse:
 
