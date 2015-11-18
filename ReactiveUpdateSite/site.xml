@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description name="Reactive ATL Update SIte">
+      Update site for Reactive ATL
+   </description>
+   <feature url="features/ReactiveATLFeature_1.0.0.201511180933.jar" id="ReactiveATLFeature" version="1.0.0.201511180933">
+      <category name="ReactiveATL"/>
+   </feature>
+   <category-def name="ReactiveATL" label="ReactiveATL">
+      <description>
+         Plugins for the experimental reactive ATL engine.
+      </description>
+   </category-def>
+</site>
