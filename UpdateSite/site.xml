@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description name="Reactive ATL Update Site">
+      Reactive ATL Update Site
+   </description>
+   <feature url="features/ReactiveATLFeature_1.0.0.201511181322.jar" id="ReactiveATLFeature" version="1.0.0.201511181322">
+      <category name="ReactiveATL"/>
+   </feature>
+   <category-def name="ReactiveATL" label="ReactiveATL"/>
+</site>
