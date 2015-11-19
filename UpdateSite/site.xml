@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <description name="Reactive ATL Update Site">
-      Reactive ATL Update Site
+   <description name="Reactive ATL Update SIte">
+      Update site for the experimental Reactive ATL engine and compiler
    </description>
-   <feature url="features/ReactiveATLFeature_1.0.0.201511191631.jar" id="ReactiveATLFeature" version="1.0.0.201511191631">
+   <feature url="features/ReactiveATLFeature_1.0.0.201511191643.jar" id="ReactiveATLFeature" version="1.0.0.201511191643">
       <category name="ReactiveATL"/>
    </feature>
    <category-def name="ReactiveATL" label="ReactiveATL"/>
