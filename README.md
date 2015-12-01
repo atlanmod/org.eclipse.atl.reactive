@@ -2,6 +2,10 @@
 
 **Reactive** engine for the ATL transformation language. In a model-driven application environment it works by activating only the strictly needed computation in response to updates or requests of model elements. Computation is updated when necessary, in an autonomous and optimized way by using **incrementality** and **lazy evaluation**.
 
+You can install it by using the update site: http://atlanmod.github.io/org.eclipse.atl.reactive/UpdateSite/
+
+As an alternative, you can clone the repository and follow the instructions below:
+
 ##Requirements (IDE set up):
 
 In order to import and compile the source code, and Eclipse IDE with the following Eclipe plugins is required.
