@@ -24,6 +24,8 @@ In order to Install these plugins, from the eclipse IDE go to: menu *Help->Insta
 
 In the workspace, select the package explorer view: *RightClick-> Import-> Existing Projects Into Workspace* and browse the filesystem to the location of the cloned repository and select the /plugins folder. Finally, select all the plugins containend in the /plugins folder to complete the importation (alternatively, the eclipse GIT perspective can be used to explore the cloned repository and import the plugins).
 
+** You may experience problems with the org.antlr.runtime plugin if you have made the importation using git. . To solve this issue just remove the git imported plugin from the workspace and import it manually (*RightClick-> Import-> Existing Projects Into Workspace*)
+
 ##Testing:
 
 From the previous workspace, launch a new Eclipse Application (*runAs->Eclipse Application*). A new Eclipse IDE will open. Reactive ATL is ready to be used programatically. In the cloned repository, the /test folder contains a project called *org.eclipse.m2m.atl.reactive.test*. This project contains a set of programmatic examples demonstrating:
