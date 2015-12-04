@@ -2,6 +2,10 @@
 
 **Reactive** engine for the ATL transformation language. In a model-driven application environment it works by activating only the strictly needed computation in response to updates or requests of model elements. Computation is updated when necessary, in an autonomous and optimized way by using **incrementality** and **lazy evaluation**.
 
+You can install it by using the update site: http://atlanmod.github.io/org.eclipse.atl.reactive/UpdateSite/
+
+As an alternative, you can clone the repository and follow the instructions below:
+
 ##Requirements (IDE set up):
 
 In order to import and compile the source code, and Eclipse IDE with the following Eclipe plugins is required.
@@ -19,6 +23,8 @@ In order to Install these plugins, from the eclipse IDE go to: menu *Help->Insta
 -After cloning the ReactiveATL git repository, the plugins in the /plugins folder need to be imported into the active workspace of the previously installed Eclipse IDE. Proceed as follows: 
 
 In the workspace, select the package explorer view: *RightClick-> Import-> Existing Projects Into Workspace* and browse the filesystem to the location of the cloned repository and select the /plugins folder. Finally, select all the plugins containend in the /plugins folder to complete the importation (alternatively, the eclipse GIT perspective can be used to explore the cloned repository and import the plugins).
+
+** You may experience problems with the org.antlr.runtime plugin if you have made the importation using git. . To solve this issue just remove the git imported plugin from the workspace and import it manually (*RightClick-> Import-> Existing Projects Into Workspace*)
 
 ##Testing:
 
