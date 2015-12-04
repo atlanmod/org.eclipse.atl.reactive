@@ -2,22 +2,6 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension
-         point="org.eclipse.ui.popupMenus">
-         
-         <objectContribution 
-      		id="org.eclipse.ui.articles.action.contribution.popup.object"
-   			objectClass="org.eclipse.emf.ecore.EObject">
-   	
-      		<action
-         		id="org.eclipse.ui.articles.action.contribution.object.action1" 
-         		label="LazyTransform"
-         		icon="icons/red_dot.gif"
-         		menubarPath="additions" 
-      			class="org.eclipse.m2m.atl.reactive.LazyTransformationLaunch"> 
-      		</action> 
-   		</objectContribution>
-   </extension>
-   <extension
          point="org.eclipse.m2m.atl.core.model">
       <model
             model="org.eclipse.m2m.atl.reactive.model.EMFLazyModel"
@@ -38,13 +22,6 @@
             class="org.eclipse.m2m.atl.core.emf.EMFExtractor"
             name="EMFLazy">
       </extractor>
-   </extension>
-   <extension
-         point="org.eclipse.emf.ecore.extension_parser">
-      <parser
-            class="org.eclipse.m2m.atl.reactive.model.LazyResourceFactoryImpl"
-            type="lazy_launch">
-      </parser>
    </extension>
 
 </plugin>
