@@ -3,7 +3,7 @@
    <description name="Reactive ATL Update SIte">
       Update site for the experimental Reactive ATL engine and compiler
    </description>
-   <feature url="features/ReactiveATLFeature_1.0.0.201511252029.jar" id="ReactiveATLFeature" version="1.0.0.201511252029">
+   <feature url="features/ReactiveATLFeature_1.0.0.201512041413.jar" id="ReactiveATLFeature" version="1.0.0.201512041413">
       <category name="ReactiveATL"/>
    </feature>
    <category-def name="ReactiveATL" label="ReactiveATL"/>
