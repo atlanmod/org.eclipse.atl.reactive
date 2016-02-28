@@ -249,20 +249,20 @@ public class ReactiveTransformationLauncher extends EMFVMLauncher {
 		}
 
 		// Open target model
-		//URI uri = URI.createURI(targetModelPath);
+		URI uri = URI.createURI(targetModelPath);
 		
-		// Open target model
-		fileUri = URI
-				.createFileURI(new File(targetModelPath).getAbsolutePath());
+//		// Open target model
+//		fileUri = URI
+//				.createFileURI(new File(targetModelPath).getAbsolutePath());
 
-		//if (targetResource == null) {
-		//	targetResource = resourceSet.createResource(uri);
-		//}
-		
 		if (targetResource == null) {
-				targetResource = resourceSet.getResource(fileUri, true);
+			targetResource = resourceSet.createResource(uri);
 		}
 		
+//		if (targetResource == null) {
+//				targetResource = resourceSet.getResource(fileUri, true);
+//		}
+//		
 		// Fill transformation
 		transformation.addReferenceModel(sourceMetamodelName,
 				sourceReferenceResource);

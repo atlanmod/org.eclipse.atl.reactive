@@ -81,11 +81,11 @@ public class Class2Relational2XMLTest {
 
 			t.class2relational = new ReactiveTransformationLauncher();
 
-			t.class2relational.initialize(
+			t.class2relational.initializeGood(
 					"data/ClassDiagram/ClassDiagram.ecore", "ClassDiagram",
 					"data/Relational/Relational.ecore", "Relational",
 					"data/ClassDiagram/Sample-ClassDiagram.xmi",
-					"data/Relational/Sample-Relational.xmi",
+					"data/Relational/Sample-Relational.xmi", null, null,
 					"data/ClassDiagram2Relational/ClassDiagram2Relational.asm");
 
 			// Here the path for the relational model of st2 has to be the same
@@ -94,7 +94,8 @@ public class Class2Relational2XMLTest {
 
 			t.relational2xml.setSourceResource(t.class2relational
 					.getTargetResource());
-			t.relational2xml.initialize("data/Relational/Relational.ecore",
+			
+			t.relational2xml.initializeChain("data/Relational/Relational.ecore",
 					"Relational", "data/XML/xml.ecore", "xml",
 					"data/Relational/Sample-Relational.xmi",
 					"data/XML/Sample-XML.xmi",

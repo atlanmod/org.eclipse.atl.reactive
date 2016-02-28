@@ -17,11 +17,11 @@ public class relationalQuery {
 
 			t.class2relational = new ReactiveTransformationLauncher();
 
-			t.class2relational.initialize(
+			t.class2relational.initializeGood(
 					"data/ClassDiagram/ClassDiagram.ecore", "ClassDiagram",
 					"data/Relational/Relational.ecore", "Relational",
 					"data/ClassDiagram/Sample-ClassDiagram.xmi",
-					"data/Relational/Sample-Relational.xmi",
+					"data/Relational/Sample-Relational.xmi", null, null,
 					"data/ClassDiagram2Relational/ClassDiagram2Relational.asm");
 
 			t.run();
