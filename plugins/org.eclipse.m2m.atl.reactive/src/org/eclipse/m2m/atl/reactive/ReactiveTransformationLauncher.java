@@ -210,11 +210,11 @@ public class ReactiveTransformationLauncher extends EMFVMLauncher {
 						(EMFVMLazyTransformation) getTransformation()));
 	}
 
-	public void initializeGood(String sourceMetamodelPath,
+	public void initialize(String sourceMetamodelPath,
 			String sourceMetamodelName, String targetMetamodelPath,
 			String targetMetamodelName, String sourceModelPath,
-			String targetModelPath, EMFModel sourceModel, EMFModel targetModel,
-			String asmPath) throws FileNotFoundException {
+			String targetModelPath, String asmPath)
+			throws FileNotFoundException {
 
 		ResourceSet resourceSet = new ResourceSetImpl();
 		URI fileUri;
@@ -335,6 +335,13 @@ public class ReactiveTransformationLauncher extends EMFVMLauncher {
 
 		initialSourceElement = getSourceResource().getContents().get(0);
 
+//		for (Iterator<?> i = getSourceResource().getContents().iterator(); i.hasNext();) {
+//			EObject eo = (EObject)i.next();
+//			if (eo.eClass().getName().equals("IfcWall")) {
+//				initialSourceElement = eo;
+//			}
+//		}
+		
 		// TODO Check setBusy
 		((EMFVMLazyTransformation) getTransformation()).setBusy(true);
 		getTransformation().call("elementCreated", initialSourceElement);
@@ -350,11 +357,11 @@ public class ReactiveTransformationLauncher extends EMFVMLauncher {
 		StandardTargetAdapter sta = new StandardTargetAdapter(
 				(EMFVMLazyTransformation) getTransformation());
 		sta.setHandleCustomNotification(false);
-		getInitialTargetElement().eAdapters().add(sta);
+		targetResource.eAdapters().add(sta);
 		sta.setHandleCustomNotification(true);
 
 		// Add source model adapter
-		getInitialSourceElement().eAdapters().add(
+		sourceResource.eAdapters().add(
 				new StandardSourceAdapter(
 						(EMFVMLazyTransformation) getTransformation()));
 	}
