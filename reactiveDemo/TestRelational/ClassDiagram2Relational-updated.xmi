@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<Relational:Schema
+    xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:Relational="Relational"
+    name="p1">
+  <ownedElements
+      name="c11abb"/>
+  <ownedElements
+      name="c22">
+    <col name="c22_family"/>
+  </ownedElements>
+  <ownedElements
+      name="c3">
+    <col name="c3_sssad"/>
+    <col name="c3_sssssss"/>
+    <col name="c3_org.eclipse.m2m.atl.engine.emfvm.lib.OclUndefined@7eba06e7"/>
+  </ownedElements>
+</Relational:Schema>
