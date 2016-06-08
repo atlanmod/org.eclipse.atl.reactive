@@ -72,13 +72,23 @@ public class LazyModelDynamicEObjectImpl extends DynamicEObjectImpl{
 		}*/
 		
 		//We notify a get is being performed
-		LazyModelNotification notification = new LazyModelNotification(this, LazyModelNotification.GET, eFeature, value);
-		this.eNotify(notification);
 		
-		value = super.eGet(eFeature);
+		if (!this.getFeaturesFlagMapElement(eFeature.getName())) {
+			LazyModelNotification notification = new LazyModelNotification(this, LazyModelNotification.GET, eFeature, value);
+			this.eNotify(notification);
+			value = super.eGet(eFeature);
+		}
+
+		return value;
+
+		
+		//LazyModelNotification notification = new LazyModelNotification(this, LazyModelNotification.GET, eFeature, value);
+		//this.eNotify(notification);
+		
+		//value = super.eGet(eFeature);
 		
 		
-	    return value;
+	    //return value;
 	}
 	
 	@Override
