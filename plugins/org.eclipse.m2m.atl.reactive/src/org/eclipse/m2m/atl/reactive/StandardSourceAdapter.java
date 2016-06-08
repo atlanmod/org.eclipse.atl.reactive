@@ -5,6 +5,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
 import org.eclipse.emf.ecore.util.EContentAdapter;
+import org.eclipse.m2m.atl.reactive.model.LazyModelNotification;
 
 /**
  * Source Reactive Adapter handles notification events produced by an EMF model
@@ -51,8 +52,12 @@ public class StandardSourceAdapter extends EContentAdapter {
 					.getFeature();
 			notifier = (EObject) ((ENotificationImpl) notification)
 					.getNotifier();
+			Object newv = ((ENotificationImpl) notification).getNewValue();
+			Object old = ((ENotificationImpl) notification).getOldValue();
 			if (!transformation.isBusy())
-				transformation.elementDeleted(notifier);
+				transformation.elementDeleted((EObject) old);
+			if (!transformation.isBusy())
+				transformation.propertyChanged(notifier, f.getName());
 			break;
 		default:
 			break;

@@ -592,6 +592,7 @@ public class EMFModelAdapter implements IModelAdapter {
 			Object oldValue = eo.eGet(feature);
 			if (oldValue instanceof Collection) {
 				Collection<Object> oldCol = (Collection<Object>)oldValue;
+				oldCol.removeAll((Collection<Object>)oldValue);
 				if (settableValue instanceof Collection) {
 					if (targetIsEnum) {
 						EEnum eenum = (EEnum)type;
@@ -603,24 +604,24 @@ public class EMFModelAdapter implements IModelAdapter {
 						for (Iterator<?> i = ((Collection<?>)settableValue).iterator(); i.hasNext();) {
 							Object v = i.next();
 							if (v instanceof EObject) {
-								if (execEnv.getModelOf(eo) == execEnv.getModelOf(v)) {
+//								if (execEnv.getModelOf(eo) == execEnv.getModelOf(v)) {
 									oldCol.add(v);
-								} else if (allowInterModelReferences && feature instanceof EReference) {
-									EReference ref = (EReference)feature;
-									if (!ref.isContainer() && !ref.isContainment()) {
-										oldCol.add(v);
-									} else {
-										ATLLogger
-												.warning(Messages
-														.getString(
-																"EMFModelAdapter.CONTAINMENT_ERROR", new Object[] {settableValue, name})); //$NON-NLS-1$
-									}
-								} else {
-									ATLLogger
-											.warning(Messages
-													.getString(
-															"EMFModelAdapter.NON_ALLOWED_REFERENCE", new Object[] {settableValue, name})); //$NON-NLS-1$
-								}
+//								} else if (allowInterModelReferences && feature instanceof EReference) {
+//									EReference ref = (EReference)feature;
+//									if (!ref.isContainer() && !ref.isContainment()) {
+//										oldCol.add(v);
+//									} else {
+//										ATLLogger
+//												.warning(Messages
+//														.getString(
+//																"EMFModelAdapter.CONTAINMENT_ERROR", new Object[] {settableValue, name})); //$NON-NLS-1$
+//									}
+//								} else {
+//									ATLLogger
+//											.warning(Messages
+//													.getString(
+//															"EMFModelAdapter.NON_ALLOWED_REFERENCE", new Object[] {settableValue, name})); //$NON-NLS-1$
+//								}
 								//Here we remove the element from the root as it will be contained elsewhere
 								//this also save us the last finalizeModel commitToResource Step
 								if (feature instanceof EReference && ((EReference) feature).isContainment()) 

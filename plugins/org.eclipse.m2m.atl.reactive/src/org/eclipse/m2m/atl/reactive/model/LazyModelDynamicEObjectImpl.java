@@ -45,6 +45,10 @@ public class LazyModelDynamicEObjectImpl extends DynamicEObjectImpl{
 		featuresFlagMap.put(featureName, value);
 		this.eNotify(notification);
 	}
+	
+	public void setFeaturesFlagMapElementNotNotify(String featureName, Boolean value) {
+		featuresFlagMap.put(featureName, value);
+	}
 
 	@Override
 	public Object eGet(EStructuralFeature eFeature){
@@ -72,6 +76,7 @@ public class LazyModelDynamicEObjectImpl extends DynamicEObjectImpl{
 		this.eNotify(notification);
 		
 		value = super.eGet(eFeature);
+		
 		
 	    return value;
 	}

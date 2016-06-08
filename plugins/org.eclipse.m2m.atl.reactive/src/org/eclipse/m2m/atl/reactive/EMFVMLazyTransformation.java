@@ -39,6 +39,7 @@ import org.eclipse.m2m.atl.engine.emfvm.lib.TransientLinkSet;
 import org.eclipse.m2m.atl.reactive.model.EMFLazyModel;
 import org.eclipse.m2m.atl.reactive.model.EMFLazyModelFactory;
 import org.eclipse.m2m.atl.reactive.model.LazyModelDynamicEObjectImpl;
+import org.eclipse.m2m.atl.reactive.model.LazyModelNotification;
 
 public class EMFVMLazyTransformation implements ILazyTransformation{
 	
@@ -581,13 +582,21 @@ public class EMFVMLazyTransformation implements ILazyTransformation{
 	 * @param obj
 	 */
 	public void invalidateTarget(LazyModelDynamicEObjectImpl obj){
-		obj.setValid(false);
-		TreeIterator<EObject> it = obj.eAllContents();
-		while (it.hasNext()){
-			LazyModelDynamicEObjectImpl o = (LazyModelDynamicEObjectImpl) it.next();
-			o.setValid(false);
-		}
-	}
+		
+        LazyModelDynamicEObjectImpl parentEObject = (LazyModelDynamicEObjectImpl) obj.eContainer();
+        for (EStructuralFeature esf : parentEObject.eClass().getEStructuralFeatures()) {
+        	parentEObject.setFeaturesFlagMapElementNotNotify(esf.getName(), false);
+        }
+        
+        //obj.setValid(false);
+        //TreeIterator<EObject> it = obj.eAllContents();
+        //while (it.hasNext()){
+        //    LazyModelDynamicEObjectImpl o = (LazyModelDynamicEObjectImpl) it.next();
+        //    o.setValid(false);
+        //}
+    }
+		
+	
 	
 	public void getBinding(Object value, final LazyModelDynamicEObjectImpl lazyTargetElement, final EStructuralFeature feature){
 		if ((!lazyTargetElement.getFeaturesFlagMapElement(feature.getName()) || 
