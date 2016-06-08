@@ -5,15 +5,14 @@
     xmlns:Relational="Relational"
     name="p1">
   <ownedElements
-      name="c11abb"/>
+      name="c11abc"/>
   <ownedElements
       name="c22">
-    <col name="c22_family"/>
+    <col name="family"/>
   </ownedElements>
   <ownedElements
       name="c3">
-    <col name="c3_sssad"/>
-    <col name="c3_sssssss"/>
-    <col name="c3_org.eclipse.m2m.atl.engine.emfvm.lib.OclUndefined@7eba06e7"/>
+    <col name="sssssss"/>
+    <col/>
   </ownedElements>
 </Relational:Schema>

@@ -22,8 +22,7 @@ rule Class2Table {
     c:ClassDiagram!Class
   to
     t:Relational!Table 
-     (name<-c.name, col<-c.attr->select(e| not e.multivalued), owner<-c.owner,       
-      key<-c.attr->select(a | a.name.endsWith('Id')))
+     (name<-c.name, col<-c.attr->select(e| not e.multivalued))
 }
 rule SingleValuedAttribute2Column {
   from
@@ -31,8 +30,7 @@ rule SingleValuedAttribute2Column {
      (not a.multivalued)
   to
     c:Relational!Column 
-     (name<-a.owner.name+'_'+a.name,
-      owner<-a.owner,
+     (name<-a.name,
       type<-if a.type.oclIsTypeOf(ClassDiagram!DataType)
         then a.type else OclUndefined endif)
 }

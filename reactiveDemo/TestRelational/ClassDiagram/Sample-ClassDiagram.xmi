@@ -9,7 +9,7 @@
   <ownedElements
       xsi:type="ClassDiagram:Class"
       xmi:id="//@ownedElements.0"
-      name="c11abb">
+      name="c11abc">
     <attr xmi:id="4"
         name="members"
         multivalued="true"
@@ -27,7 +27,6 @@
       xsi:type="ClassDiagram:Class"
       xmi:id="//@ownedElements.2"
       name="c3">
-    <attr name="sssad"/>
     <attr name="sssssss"/>
     <attr/>
   </ownedElements>
